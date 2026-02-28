@@ -194,7 +194,7 @@ async def main(source: str) -> None:
     drafter = EmailDrafter()
     enricher = ContentEnricher()
     serper_client = SerperClient()
-    gemini_limiter = GeminiRateLimiter(max_per_minute=10)
+    gemini_limiter = GeminiRateLimiter(max_per_minute=60)
     hitl_url = os.environ.get("HITL_GATEWAY_URL", "")
 
     # Search via Serper API (all queries in parallel)
@@ -206,8 +206,8 @@ async def main(source: str) -> None:
 
     logger.info("search_complete", source=source, leads_found=len(leads))
 
-    # Process leads with bounded concurrency (3 to respect Gemini 15 RPM free tier)
-    sem = asyncio.Semaphore(3)
+    # Process leads with bounded concurrency
+    sem = asyncio.Semaphore(10)
 
     async def _bounded(lead: dict) -> None:
         async with sem:
