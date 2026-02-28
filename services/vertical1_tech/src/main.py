@@ -4,6 +4,7 @@ Vertical 1 — Tech Services: Main entrypoint.
 Usage:
     python -m src.main --source upwork
     python -m src.main --source linkedin
+    python -m src.main --source all
 """
 
 from __future__ import annotations
@@ -34,12 +35,12 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..
 sys.path.insert(0, PROJECT_ROOT)
 
 from shared.utils.rate_limiter import HumanizedRateLimiter, GeminiRateLimiter
+from shared.utils.serper_client import SerperClient
 
 from .db_client import get_supabase, LeadsRepository
 from .qualifier import LeadQualifier
 from .email_drafter import EmailDrafter
-from .scrapers.upwork_poller import scrape_upwork
-from .scrapers.linkedin_scraper import scrape_linkedin
+from .scrapers.serper_search import search_leads
 
 
 async def process_lead(
@@ -176,15 +177,14 @@ async def main(source: str) -> None:
     repo = LeadsRepository(supabase)
     qualifier = LeadQualifier()
     drafter = EmailDrafter()
-    scraper_limiter = HumanizedRateLimiter(min_delay=5, max_delay=10)
+    serper_client = SerperClient()
+    scraper_limiter = HumanizedRateLimiter(min_delay=1, max_delay=2)
     gemini_limiter = GeminiRateLimiter(max_per_minute=12)
     hitl_url = os.environ.get("HITL_GATEWAY_URL", "")
 
-    # Scrape
-    if source == "upwork":
-        leads = await scrape_upwork(scraper_limiter)
-    elif source == "linkedin":
-        leads = await scrape_linkedin(scraper_limiter)
+    # Search via Serper API (Google Search)
+    if source in ("upwork", "linkedin", "weworkremotely", "indeed", "all"):
+        leads = await search_leads(serper_client, source, scraper_limiter)
     else:
         logger.error("unknown_source", source=source)
         return
@@ -220,8 +220,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--source",
         required=True,
-        choices=["upwork", "linkedin"],
-        help="Data source to scrape",
+        choices=["upwork", "linkedin", "weworkremotely", "indeed", "all"],
+        help="Data source to search via Serper API",
     )
     args = parser.parse_args()
     asyncio.run(main(args.source))

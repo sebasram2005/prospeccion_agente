@@ -1,0 +1,111 @@
+"""
+Search API-based lead sourcing for Vertical 2 — Cerrieta.
+
+Replaces instagram_scraper.py with Serper.dev Google Search API queries.
+Google Maps scraper remains unchanged (API-based, works fine).
+"""
+
+from __future__ import annotations
+
+import os
+import re
+
+import structlog
+
+logger = structlog.get_logger(__name__)
+
+INSTAGRAM_SEARCH_KEYWORDS = [
+    "luxury pet boutique",
+    "cat cafe premium",
+    "luxury pet furniture store",
+    "designer pet accessories shop",
+]
+
+
+def _extract_username_from_url(url: str) -> str:
+    """Extract Instagram username from URL."""
+    match = re.search(r"instagram\.com/([^/?]+)", url)
+    if match:
+        username = match.group(1)
+        if username not in ("p", "explore", "accounts", "reel", "stories", "reels"):
+            return username
+    return ""
+
+
+def _extract_follower_count(snippet: str) -> int:
+    """Try to extract follower count from Google snippet of Instagram profile."""
+    match = re.search(r"([\d,.]+)\s*[Kk]\s*[Ff]ollowers", snippet)
+    if match:
+        num_str = match.group(1).replace(",", "")
+        return int(float(num_str) * 1000)
+
+    match = re.search(r"([\d,]+)\s*[Ff]ollowers", snippet)
+    if match:
+        return int(match.group(1).replace(",", ""))
+
+    return 0
+
+
+def _normalize_instagram_result(result: dict) -> dict:
+    """Normalize a Serper result into pipeline-compatible Instagram lead dict."""
+    url = result.get("link", "")
+    username = _extract_username_from_url(url)
+    snippet = result.get("snippet", "")
+    follower_count = _extract_follower_count(snippet)
+
+    return {
+        "username": username,
+        "name": username,
+        "bio": snippet,
+        "follower_count": follower_count,
+        "business_email": None,
+        "url": url,
+    }
+
+
+async def search_instagram_leads(serper_client, rate_limiter=None) -> list[dict]:
+    """Search for Instagram profiles matching Cerrieta's target market.
+
+    Returns list[dict] compatible with existing instagram scraper output format.
+    """
+    max_profiles = int(os.environ.get("MAX_LEADS_PER_RUN", "15"))
+    all_profiles: list[dict] = []
+    seen_urls: set[str] = set()
+
+    for keyword in INSTAGRAM_SEARCH_KEYWORDS:
+        if len(all_profiles) >= max_profiles:
+            break
+
+        query = f'site:instagram.com "{keyword}"'
+
+        if rate_limiter:
+            await rate_limiter.wait()
+
+        results = await serper_client.search(query=query, num=10)
+
+        for result in results:
+            profile = _normalize_instagram_result(result)
+
+            if not profile["username"]:
+                continue
+
+            if profile["url"] in seen_urls:
+                continue
+            seen_urls.add(profile["url"])
+
+            all_profiles.append(profile)
+
+        logger.info(
+            "instagram_search_complete",
+            keyword=keyword,
+            results_found=len(results),
+            total_profiles=len(all_profiles),
+            source="instagram",
+        )
+
+    logger.info(
+        "instagram_search_all_complete",
+        total_profiles=len(all_profiles),
+        source="instagram",
+    )
+    return all_profiles[:max_profiles]

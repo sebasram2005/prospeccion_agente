@@ -2,16 +2,15 @@ name: Vertical 1 — Tech Services Scraper
 
 on:
   schedule:
-    - cron: '5 * * * *'     # Upwork: cada hora a los :05
-    - cron: '15 */2 * * *'  # LinkedIn: cada 2 horas a los :15
+    - cron: '5 */4 * * *'   # Cada 4 horas (conserva quota Serper)
   workflow_dispatch:
     inputs:
       source:
-        description: 'Fuente a scrapear'
+        description: 'Fuente a buscar via Serper API'
         required: true
-        default: 'upwork'
+        default: 'all'
         type: choice
-        options: ['upwork', 'linkedin']
+        options: ['upwork', 'linkedin', 'weworkremotely', 'indeed', 'all']
 
 jobs:
   scrape:
@@ -35,10 +34,8 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "source=${{ inputs.source }}" >> $GITHUB_OUTPUT
-          elif [ "$(date +%M)" = "05" ]; then
-            echo "source=upwork" >> $GITHUB_OUTPUT
           else
-            echo "source=linkedin" >> $GITHUB_OUTPUT
+            echo "source=all" >> $GITHUB_OUTPUT
           fi
 
       - name: Run scraper
@@ -51,3 +48,4 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           HITL_GATEWAY_URL: ${{ secrets.HITL_GATEWAY_URL }}
+          SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}

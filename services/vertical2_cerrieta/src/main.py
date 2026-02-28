@@ -34,12 +34,13 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..
 sys.path.insert(0, PROJECT_ROOT)
 
 from shared.utils.rate_limiter import HumanizedRateLimiter, GeminiRateLimiter
+from shared.utils.serper_client import SerperClient
 
 from .db_client import get_supabase, LeadsRepository
 from .qualifier import LeadQualifier
 from .email_drafter import EmailDrafter
 from .scrapers.gmaps_scraper import scrape_gmaps
-from .scrapers.instagram_scraper import scrape_instagram
+from .scrapers.serper_search import search_instagram_leads
 
 
 async def process_lead(
@@ -178,21 +179,16 @@ async def main(source: str) -> None:
     drafter = EmailDrafter()
     hitl_url = os.environ.get("HITL_GATEWAY_URL", "")
 
-    # Configure rate limiters per source
-    if source == "instagram":
-        scraper_limiter = HumanizedRateLimiter(
-            min_delay=8, max_delay=12, pause_every=30, pause_duration=90
-        )
-    else:
-        scraper_limiter = HumanizedRateLimiter(min_delay=2, max_delay=5)
-
+    # Configure rate limiters
+    scraper_limiter = HumanizedRateLimiter(min_delay=1, max_delay=3)
     gemini_limiter = GeminiRateLimiter(max_per_minute=12)
 
     # Scrape
     if source == "gmaps":
         leads = await scrape_gmaps(scraper_limiter)
     elif source == "instagram":
-        leads = await scrape_instagram(scraper_limiter)
+        serper_client = SerperClient()
+        leads = await search_instagram_leads(serper_client, scraper_limiter)
     else:
         logger.error("unknown_source", source=source)
         return

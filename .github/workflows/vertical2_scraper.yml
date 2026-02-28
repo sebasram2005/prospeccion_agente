@@ -3,11 +3,11 @@ name: Vertical 2 — Cerrieta Scraper
 on:
   schedule:
     - cron: '45 */6 * * *'  # Google Maps: cada 6 horas
-    - cron: '30 */4 * * *'  # Instagram: cada 4 horas
+    - cron: '30 */4 * * *'  # Instagram (via Serper): cada 4 horas
   workflow_dispatch:
     inputs:
       source:
-        description: 'Fuente a scrapear'
+        description: 'Fuente a buscar'
         required: true
         default: 'gmaps'
         type: choice
@@ -53,4 +53,4 @@ jobs:
           HITL_GATEWAY_URL: ${{ secrets.HITL_GATEWAY_URL }}
           GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
           TARGET_CITIES: ${{ vars.TARGET_CITIES }}
-          INSTAGRAM_MOCK: 'false'
+          SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
