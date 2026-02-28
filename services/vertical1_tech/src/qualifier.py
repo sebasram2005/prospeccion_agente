@@ -42,7 +42,7 @@ class TechQualificationResult(BaseModel):
 
 class LeadQualifier:
     def __init__(self):
-        self.api_key = os.environ["GEMINI_API_KEY"]
+        self.api_key = os.environ["GEMINI_API_KEY"].strip()
         self.system_prompt = self._load_system_prompt()
 
     def _load_system_prompt(self) -> str:
