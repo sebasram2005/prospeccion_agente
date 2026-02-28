@@ -1,5 +1,7 @@
 """
 Lead qualifier using Gemini 2.5 Flash-Lite for Vertical 2 — Cerrieta.
+
+Uses the Gemini REST API directly via httpx (no SDK dependency conflicts).
 """
 
 from __future__ import annotations
@@ -8,7 +10,7 @@ import json
 import os
 from pathlib import Path
 
-import google.generativeai as genai
+import httpx
 import structlog
 from pydantic import BaseModel
 from typing import Literal
@@ -16,6 +18,7 @@ from typing import Literal
 logger = structlog.get_logger(__name__)
 
 PROMPTS_DIR = Path(__file__).resolve().parents[3] / "shared" / "prompts"
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent"
 
 
 class CerrietaQualificationResult(BaseModel):
@@ -27,14 +30,7 @@ class CerrietaQualificationResult(BaseModel):
 
 class LeadQualifier:
     def __init__(self):
-        genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-        self.model = genai.GenerativeModel(
-            model_name="gemini-2.5-flash-lite-preview-06-17",
-            generation_config=genai.GenerationConfig(
-                response_mime_type="application/json",
-                temperature=0.1,
-            ),
-        )
+        self.api_key = os.environ["GEMINI_API_KEY"]
         self.system_prompt = self._load_system_prompt()
 
     def _load_system_prompt(self) -> str:
@@ -46,15 +42,31 @@ class LeadQualifier:
         max_retries = 3
         for attempt in range(1, max_retries + 1):
             try:
-                response = await self.model.generate_content_async(
-                    [
-                        {"role": "user", "parts": [self.system_prompt]},
-                        {"role": "model", "parts": ["Understood. Send me the prospect data and I will evaluate it."]},
-                        {"role": "user", "parts": [raw_text]},
-                    ]
-                )
+                async with httpx.AsyncClient(timeout=30.0) as client:
+                    resp = await client.post(
+                        GEMINI_API_URL,
+                        headers={
+                            "x-goog-api-key": self.api_key,
+                            "Content-Type": "application/json",
+                        },
+                        json={
+                            "system_instruction": {
+                                "parts": [{"text": self.system_prompt}]
+                            },
+                            "contents": [
+                                {"parts": [{"text": raw_text}]}
+                            ],
+                            "generationConfig": {
+                                "responseMimeType": "application/json",
+                                "temperature": 0.1,
+                            },
+                        },
+                    )
+                    resp.raise_for_status()
 
-                text = response.text.strip()
+                body = resp.json()
+                text = body["candidates"][0]["content"]["parts"][0]["text"].strip()
+
                 if text.startswith("```"):
                     text = text.split("\n", 1)[1] if "\n" in text else text[3:]
                     if text.endswith("```"):

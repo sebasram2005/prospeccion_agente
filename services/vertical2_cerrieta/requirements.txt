@@ -1,7 +1,7 @@
 httpx==0.27.0
 beautifulsoup4==4.12.3
 lxml==5.2.2
-google-generativeai==0.8.3
+# Gemini API called via httpx REST (no SDK needed)
 pydantic==2.7.1
 jinja2==3.1.4
 supabase==2.6.0
