@@ -139,7 +139,7 @@ async def process_lead(
     # 9. Notify HITL Gateway
     if queue_id and hitl_url:
         try:
-            async with httpx.AsyncClient(timeout=5.0) as client:
+            async with httpx.AsyncClient(timeout=30.0) as client:
                 resp = await client.post(
                     f"{hitl_url.rstrip('/')}/notify",
                     json={"queue_id": queue_id},
