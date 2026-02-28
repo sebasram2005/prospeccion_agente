@@ -7,6 +7,7 @@ Google Maps scraper remains unchanged (API-based, works fine).
 
 from __future__ import annotations
 
+import asyncio
 import os
 import re
 
@@ -63,25 +64,26 @@ def _normalize_instagram_result(result: dict) -> dict:
     }
 
 
-async def search_instagram_leads(serper_client, rate_limiter=None) -> list[dict]:
+async def search_instagram_leads(serper_client) -> list[dict]:
     """Search for Instagram profiles matching Cerrieta's target market.
+
+    All queries run in parallel — Serper is a paid API, no need for delays.
 
     Returns list[dict] compatible with existing instagram scraper output format.
     """
     max_profiles = int(os.environ.get("MAX_LEADS_PER_RUN", "15"))
-    all_profiles: list[dict] = []
     seen_urls: set[str] = set()
+    all_profiles: list[dict] = []
 
-    for keyword in INSTAGRAM_SEARCH_KEYWORDS:
-        if len(all_profiles) >= max_profiles:
-            break
+    # Fire all queries in parallel
+    queries = [f'site:instagram.com "{kw}"' for kw in INSTAGRAM_SEARCH_KEYWORDS]
+    tasks = [serper_client.search(query=q, num=10) for q in queries]
+    results_list = await asyncio.gather(*tasks, return_exceptions=True)
 
-        query = f'site:instagram.com "{keyword}"'
-
-        if rate_limiter:
-            await rate_limiter.wait()
-
-        results = await serper_client.search(query=query, num=10)
+    for keyword, results in zip(INSTAGRAM_SEARCH_KEYWORDS, results_list):
+        if isinstance(results, Exception):
+            logger.error("instagram_search_failed", keyword=keyword, error=str(results))
+            continue
 
         for result in results:
             profile = _normalize_instagram_result(result)

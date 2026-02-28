@@ -10,6 +10,7 @@ without touching Upwork/LinkedIn directly — no IP blocking.
 
 from __future__ import annotations
 
+import asyncio
 import os
 import re
 
@@ -79,64 +80,64 @@ def _normalize_result(result: dict, source: str) -> dict:
     }
 
 
-async def search_leads(serper_client, source: str, rate_limiter=None) -> list[dict]:
+async def search_leads(serper_client, source: str) -> list[dict]:
     """Search for tech leads using Serper API.
+
+    All queries run in parallel — Serper is a paid API, no need for delays.
 
     Args:
         serper_client: Shared SerperClient instance.
         source: One of 'upwork', 'linkedin', 'weworkremotely', 'indeed', or 'all'.
-        rate_limiter: Optional rate limiter between queries.
 
     Returns:
         list[dict] compatible with the existing pipeline.
     """
     max_leads = int(os.environ.get("MAX_LEADS_PER_RUN", "30"))
-    all_leads: list[dict] = []
     seen_urls: set[str] = set()
+    all_leads: list[dict] = []
 
     sources = list(SEARCH_CONFIGS.keys()) if source == "all" else [source]
 
+    # Build all queries upfront
+    tasks = []
+    task_meta = []  # (source, keyword) for each task
     for src in sources:
         config = SEARCH_CONFIGS.get(src)
         if not config:
             logger.warning("unknown_search_source", source=src)
             continue
-
         for keyword in config["keywords"]:
-            if len(all_leads) >= max_leads:
-                break
-
             query = config["query_template"].format(keyword=keyword)
+            tasks.append(serper_client.search(query=query, num=10))
+            task_meta.append((src, keyword))
 
-            if rate_limiter:
-                await rate_limiter.wait()
+    # Fire all queries in parallel
+    results_list = await asyncio.gather(*tasks, return_exceptions=True)
 
-            results = await serper_client.search(query=query, num=10)
+    for (src, keyword), results in zip(task_meta, results_list):
+        if isinstance(results, Exception):
+            logger.error("search_query_failed", source=src, keyword=keyword, error=str(results))
+            continue
 
-            for result in results:
-                lead = _normalize_result(result, src)
+        for result in results:
+            lead = _normalize_result(result, src)
 
-                # Dedup within this run
-                if lead["url"] in seen_urls:
-                    continue
-                seen_urls.add(lead["url"])
+            if lead["url"] in seen_urls:
+                continue
+            seen_urls.add(lead["url"])
 
-                # For upwork, filter by budget if detectable
-                if src == "upwork" and lead["budget_amount"] > 0 and lead["budget_amount"] < MIN_BUDGET:
-                    continue
+            if src == "upwork" and lead["budget_amount"] > 0 and lead["budget_amount"] < MIN_BUDGET:
+                continue
 
-                all_leads.append(lead)
+            all_leads.append(lead)
 
-            logger.info(
-                "search_keyword_complete",
-                source=src,
-                keyword=keyword,
-                results_found=len(results),
-                total_leads=len(all_leads),
-            )
-
-        if len(all_leads) >= max_leads:
-            break
+        logger.info(
+            "search_keyword_complete",
+            source=src,
+            keyword=keyword,
+            results_found=len(results),
+            total_leads=len(all_leads),
+        )
 
     logger.info(
         "search_leads_complete",

@@ -139,7 +139,7 @@ async def process_lead(
     # 9. Notify HITL Gateway
     if queue_id and hitl_url:
         try:
-            async with httpx.AsyncClient(timeout=15.0) as client:
+            async with httpx.AsyncClient(timeout=5.0) as client:
                 resp = await client.post(
                     f"{hitl_url.rstrip('/')}/notify",
                     json={"queue_id": queue_id},
@@ -178,43 +178,43 @@ async def main(source: str) -> None:
     qualifier = LeadQualifier()
     drafter = EmailDrafter()
     hitl_url = os.environ.get("HITL_GATEWAY_URL", "")
-
-    # Configure rate limiters
-    scraper_limiter = HumanizedRateLimiter(min_delay=1, max_delay=3)
     gemini_limiter = GeminiRateLimiter(max_per_minute=12)
 
     # Scrape
     if source == "gmaps":
+        scraper_limiter = HumanizedRateLimiter(min_delay=2, max_delay=5)
         leads = await scrape_gmaps(scraper_limiter)
     elif source == "instagram":
         serper_client = SerperClient()
-        leads = await search_instagram_leads(serper_client, scraper_limiter)
+        leads = await search_instagram_leads(serper_client)
     else:
         logger.error("unknown_source", source=source)
         return
 
-    logger.info("scrape_complete", source=source, leads_found=len(leads))
+    logger.info("search_complete", source=source, leads_found=len(leads))
 
-    # Process each lead
-    for lead in leads:
-        try:
-            await process_lead(
-                lead=lead,
-                source=source,
-                repo=repo,
-                qualifier=qualifier,
-                drafter=drafter,
-                gemini_limiter=gemini_limiter,
-                hitl_url=hitl_url,
-            )
-        except Exception as exc:
+    # Process leads concurrently (Gemini rate limiter controls throughput)
+    tasks = [
+        process_lead(
+            lead=lead,
+            source=source,
+            repo=repo,
+            qualifier=qualifier,
+            drafter=drafter,
+            gemini_limiter=gemini_limiter,
+            hitl_url=hitl_url,
+        )
+        for lead in leads
+    ]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    for lead, result in zip(leads, results):
+        if isinstance(result, Exception):
             logger.error(
                 "lead_processing_error",
                 source=source,
-                error=str(exc),
+                error=str(result),
                 lead_url=lead.get("url", "unknown"),
             )
-            continue
 
     logger.info("pipeline_complete", source=source, vertical="cerrieta")
 
