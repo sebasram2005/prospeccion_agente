@@ -190,20 +190,24 @@ async def main(source: str) -> None:
 
     logger.info("search_complete", source=source, leads_found=len(leads))
 
-    # Process leads concurrently (Gemini rate limiter controls throughput)
-    tasks = [
-        process_lead(
-            lead=lead,
-            source=source,
-            repo=repo,
-            qualifier=qualifier,
-            drafter=drafter,
-            gemini_limiter=gemini_limiter,
-            hitl_url=hitl_url,
-        )
-        for lead in leads
-    ]
-    results = await asyncio.gather(*tasks, return_exceptions=True)
+    # Process leads with bounded concurrency (avoid saturating Supabase/Gemini)
+    sem = asyncio.Semaphore(5)
+
+    async def _bounded(lead: dict) -> None:
+        async with sem:
+            await process_lead(
+                lead=lead,
+                source=source,
+                repo=repo,
+                qualifier=qualifier,
+                drafter=drafter,
+                gemini_limiter=gemini_limiter,
+                hitl_url=hitl_url,
+            )
+
+    results = await asyncio.gather(
+        *[_bounded(lead) for lead in leads], return_exceptions=True
+    )
     for lead, result in zip(leads, results):
         if isinstance(result, Exception):
             logger.error(
