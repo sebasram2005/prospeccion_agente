@@ -1,0 +1,56 @@
+name: Vertical 2 — Cerrieta Scraper
+
+on:
+  schedule:
+    - cron: '45 */6 * * *'  # Google Maps: cada 6 horas
+    - cron: '30 */4 * * *'  # Instagram: cada 4 horas
+  workflow_dispatch:
+    inputs:
+      source:
+        description: 'Fuente a scrapear'
+        required: true
+        default: 'gmaps'
+        type: choice
+        options: ['gmaps', 'instagram']
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r services/vertical2_cerrieta/requirements.txt
+
+      - name: Determine source
+        id: source
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "source=${{ inputs.source }}" >> $GITHUB_OUTPUT
+          elif [ "$(date +%M)" = "45" ]; then
+            echo "source=gmaps" >> $GITHUB_OUTPUT
+          else
+            echo "source=instagram" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run scraper
+        working-directory: .
+        run: python -m services.vertical2_cerrieta.src.main --source ${{ steps.source.outputs.source }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          HITL_GATEWAY_URL: ${{ secrets.HITL_GATEWAY_URL }}
+          GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+          TARGET_CITIES: ${{ vars.TARGET_CITIES }}
+          INSTAGRAM_MOCK: 'false'

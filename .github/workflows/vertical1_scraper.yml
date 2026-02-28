@@ -1,0 +1,53 @@
+name: Vertical 1 — Tech Services Scraper
+
+on:
+  schedule:
+    - cron: '5 * * * *'     # Upwork: cada hora a los :05
+    - cron: '15 */2 * * *'  # LinkedIn: cada 2 horas a los :15
+  workflow_dispatch:
+    inputs:
+      source:
+        description: 'Fuente a scrapear'
+        required: true
+        default: 'upwork'
+        type: choice
+        options: ['upwork', 'linkedin']
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r services/vertical1_tech/requirements.txt
+
+      - name: Determine source
+        id: source
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "source=${{ inputs.source }}" >> $GITHUB_OUTPUT
+          elif [ "$(date +%M)" = "05" ]; then
+            echo "source=upwork" >> $GITHUB_OUTPUT
+          else
+            echo "source=linkedin" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run scraper
+        working-directory: .
+        run: python -m services.vertical1_tech.src.main --source ${{ steps.source.outputs.source }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          HITL_GATEWAY_URL: ${{ secrets.HITL_GATEWAY_URL }}
