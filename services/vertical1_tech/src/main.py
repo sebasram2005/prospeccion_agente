@@ -36,6 +36,7 @@ sys.path.insert(0, PROJECT_ROOT)
 
 from shared.utils.rate_limiter import GeminiRateLimiter
 from shared.utils.serper_client import SerperClient
+from shared.utils.content_enricher import ContentEnricher
 
 from .db_client import get_supabase, LeadsRepository
 from .qualifier import LeadQualifier
@@ -49,6 +50,7 @@ async def process_lead(
     repo: LeadsRepository,
     qualifier: LeadQualifier,
     drafter: EmailDrafter,
+    enricher: ContentEnricher,
     gemini_limiter: GeminiRateLimiter,
     hitl_url: str,
 ) -> None:
@@ -72,8 +74,11 @@ async def process_lead(
     if not raw_lead_id:
         return
 
-    # 3. Qualify with Gemini
-    raw_text = json.dumps(lead, indent=2)
+    # 3. Enrich: fetch full page content via Jina Reader (best-effort)
+    enriched_lead = await enricher.enrich_lead(lead)
+
+    # 4. Qualify with Gemini (now receives enriched data when available)
+    raw_text = json.dumps(enriched_lead, indent=2)
     await gemini_limiter.acquire()
 
     result = await qualifier.qualify(raw_text)
@@ -81,12 +86,20 @@ async def process_lead(
         await repo.mark_as_processed(raw_lead_id)
         return
 
-    # 4. Extract contact info
-    first_name = lead.get("company", "there").split()[0] if lead.get("company") else "there"
-    company_name = lead.get("company", lead.get("title", "your company"))
+    # 5. Extract contact info (use Gemini-extracted data when available)
+    company_name = result.inferred_company or lead.get("title", "your company")
+    first_name = result.contact_name or "Hiring Manager"
     email = lead.get("email", "")
 
-    # 5. Insert qualified lead
+    # 6. Scrape company website for email if Gemini found a website URL
+    if not email and result.company_website:
+        scraped_email = await enricher.scrape_email_from_website(
+            result.company_website
+        )
+        if scraped_email:
+            email = scraped_email
+
+    # 7. Insert qualified lead
     qualified_lead_id = await repo.insert_qualified_lead(
         {
             "raw_lead_id": raw_lead_id,
@@ -102,18 +115,19 @@ async def process_lead(
         await repo.mark_as_processed(raw_lead_id)
         return
 
-    # 6. Draft email
+    # 8. Draft email
     draft = drafter.draft(
         first_name=first_name,
         company_name=company_name,
         email=email or "pending@manual-lookup.com",
         pain_point=result.pain_point,
+        portfolio_proof=result.portfolio_proof,
     )
     if not draft:
         await repo.mark_as_processed(raw_lead_id)
         return
 
-    # 7. Check email dedup
+    # 9. Check email dedup
     if draft.to_email != "pending@manual-lookup.com":
         if await repo.is_already_emailed(draft.to_email):
             logger.info(
@@ -124,7 +138,7 @@ async def process_lead(
             await repo.mark_as_processed(raw_lead_id)
             return
 
-    # 8. Insert into email queue
+    # 10. Insert into email queue
     queue_id = await repo.create_email_queue_entry(
         {
             "qualified_lead_id": qualified_lead_id,
@@ -136,7 +150,7 @@ async def process_lead(
         }
     )
 
-    # 9. Notify HITL Gateway
+    # 11. Notify HITL Gateway
     if queue_id and hitl_url:
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
@@ -164,6 +178,9 @@ async def process_lead(
         raw_lead_id=raw_lead_id,
         qualified_lead_id=qualified_lead_id,
         queue_id=queue_id,
+        fit_score=result.fit_score,
+        contact_name=first_name,
+        email_found=email != "",
         source=source,
         vertical="tech",
     )
@@ -177,6 +194,7 @@ async def main(source: str) -> None:
     repo = LeadsRepository(supabase)
     qualifier = LeadQualifier()
     drafter = EmailDrafter()
+    enricher = ContentEnricher()
     serper_client = SerperClient()
     gemini_limiter = GeminiRateLimiter(max_per_minute=12)
     hitl_url = os.environ.get("HITL_GATEWAY_URL", "")
@@ -201,6 +219,7 @@ async def main(source: str) -> None:
                 repo=repo,
                 qualifier=qualifier,
                 drafter=drafter,
+                enricher=enricher,
                 gemini_limiter=gemini_limiter,
                 hitl_url=hitl_url,
             )

@@ -13,19 +13,20 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
-SUBJECT_TEMPLATE = "the {{ pain_point }} at {{ company_name }}"
+SUBJECT_TEMPLATE = "{% if company_name %}the {{ pain_point }} at {{ company_name }}{% else %}{{ pain_point }}{% endif %}"
 
 BODY_TEMPLATE = """\
 Hi {{ first_name }},
 
-I noticed your recent post regarding the {{ pain_point }}. I've seen firsthand how fragmented data infrastructure can throttle a startup's runway and obscure actual customer acquisition costs.
+I noticed your recent post regarding the {{ pain_point }}. {{ portfolio_proof }}
 
-I'm a Data Analyst and Python Developer based in Colombia. I help US teams untangle messy data and build automated SaaS MVPs—allowing you to leverage top-tier technical architecture at a highly favorable economic arbitrage versus domestic hires.
+I'm a Data Analyst and Quantitative Systems Developer based in Colombia (C1 English). I help teams turn complex data into production-ready systems — from Monte Carlo risk models to ML pipelines that predict churn with 0.89 AUC — at a 40-60% cost advantage versus US/EU hires.
 
-I have a specific idea for how you could automate the {{ pain_point }}. Worth a brief chat this week?
+I have a specific idea for how I could tackle the {{ pain_point }}. Worth a brief chat this week?
 
 Best,
-Sebastian"""
+Sebastian
+https://sebastianramirezanalytics.com"""
 
 
 @dataclass
@@ -51,12 +52,14 @@ class EmailDrafter:
         company_name: str,
         email: str,
         pain_point: str,
+        portfolio_proof: str = "",
     ) -> EmailDraft | None:
         try:
             ctx = {
                 "first_name": first_name,
                 "company_name": company_name,
                 "pain_point": pain_point,
+                "portfolio_proof": portfolio_proof or "I recently completed a similar project with measurable results.",
             }
             subject = self.subject_tpl.render(ctx)
             body = self.body_tpl.render(ctx)

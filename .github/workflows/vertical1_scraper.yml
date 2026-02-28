@@ -2,7 +2,7 @@ name: Vertical 1 — Tech Services Scraper
 
 on:
   schedule:
-    - cron: '5 */4 * * *'   # Cada 4 horas (conserva quota Serper)
+    - cron: '5 */8 * * *'   # Cada 8 horas (conserva quota Serper: 2,340/mes de 2,500)
   workflow_dispatch:
     inputs:
       source:
@@ -49,3 +49,4 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           HITL_GATEWAY_URL: ${{ secrets.HITL_GATEWAY_URL }}
           SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
+          JINA_API_KEY: ${{ secrets.JINA_API_KEY }}

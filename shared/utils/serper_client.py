@@ -32,12 +32,18 @@ class SerperClient:
         num: int = 10,
         gl: str = "us",
         hl: str = "en",
+        tbs: str | None = None,
     ) -> list[dict]:
         """Execute a Google search via Serper and return organic results.
+
+        Args:
+            tbs: Time-based search filter (e.g. "qdr:d" last day, "qdr:w" last week).
 
         Returns list of dicts with keys: title, link, snippet, position.
         """
         payload = {"q": query, "num": num, "gl": gl, "hl": hl}
+        if tbs:
+            payload["tbs"] = tbs
         headers = {
             "X-API-KEY": self.api_key,
             "Content-Type": "application/json",

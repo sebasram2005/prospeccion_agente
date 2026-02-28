@@ -20,6 +20,10 @@ INSTAGRAM_SEARCH_KEYWORDS = [
     "cat cafe premium",
     "luxury pet furniture store",
     "designer pet accessories shop",
+    "pet lifestyle brand",
+    "cat accessories boutique",
+    "pet interior design",
+    "holistic pet store",
 ]
 
 

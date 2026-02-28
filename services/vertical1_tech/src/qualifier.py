@@ -23,9 +23,21 @@ GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini
 
 class TechQualificationResult(BaseModel):
     qualified: Literal["YES", "NO"]
+    fit_score: int
     reasoning: str
     pain_point: str
-    suggested_angle: Literal["ROI-focused", "Time-saving", "Technical architecture"]
+    portfolio_proof: str
+    suggested_angle: Literal[
+        "ROI-focused",
+        "Time-saving",
+        "Technical architecture",
+        "Risk-reduction",
+        "Revenue-uplift",
+    ]
+    inferred_company: str
+    contact_name: str
+    company_website: str
+    budget_estimate: str
 
 
 class LeadQualifier:
@@ -76,19 +88,23 @@ class LeadQualifier:
                 data = json.loads(text)
                 result = TechQualificationResult(**data)
 
-                if result.qualified == "NO":
+                if result.qualified == "NO" or result.fit_score < 4:
                     logger.info(
                         "lead_not_qualified",
                         vertical="tech",
                         reasoning=result.reasoning,
+                        fit_score=result.fit_score,
                     )
                     return None
 
                 logger.info(
                     "lead_qualified",
                     vertical="tech",
+                    fit_score=result.fit_score,
                     pain_point=result.pain_point,
                     angle=result.suggested_angle,
+                    contact_name=result.contact_name,
+                    company_website=result.company_website,
                 )
                 return result
 
