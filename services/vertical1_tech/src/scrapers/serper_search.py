@@ -206,11 +206,17 @@ async def search_leads(serper_client, source: str) -> list[dict]:
         keywords = config.get(pool, config.get("pool_a", []))
         for keyword in keywords:
             query = config["query_template"].format(keyword=keyword)
-            tasks.append(serper_client.search(query=query, num=10))
+            tasks.append(serper_client.search(query=query, num=10, tbs="qdr:w"))
             task_meta.append((src, keyword))
 
-    # Fire all queries in parallel
-    results_list = await asyncio.gather(*tasks, return_exceptions=True)
+    # Fire queries in batches of 4 to respect Serper rate limit (5 req/s)
+    results_list: list = []
+    for i in range(0, len(tasks), 4):
+        batch = tasks[i : i + 4]
+        batch_results = await asyncio.gather(*batch, return_exceptions=True)
+        results_list.extend(batch_results)
+        if i + 4 < len(tasks):
+            await asyncio.sleep(1.1)
 
     for (src, keyword), results in zip(task_meta, results_list):
         if isinstance(results, Exception):

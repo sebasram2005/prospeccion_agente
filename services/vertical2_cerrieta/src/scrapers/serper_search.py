@@ -79,10 +79,16 @@ async def search_instagram_leads(serper_client) -> list[dict]:
     seen_urls: set[str] = set()
     all_profiles: list[dict] = []
 
-    # Fire all queries in parallel
+    # Fire queries in batches of 4 to respect Serper rate limit (5 req/s)
     queries = [f'site:instagram.com "{kw}"' for kw in INSTAGRAM_SEARCH_KEYWORDS]
     tasks = [serper_client.search(query=q, num=10) for q in queries]
-    results_list = await asyncio.gather(*tasks, return_exceptions=True)
+    results_list: list = []
+    for i in range(0, len(tasks), 4):
+        batch = tasks[i : i + 4]
+        batch_results = await asyncio.gather(*batch, return_exceptions=True)
+        results_list.extend(batch_results)
+        if i + 4 < len(tasks):
+            await asyncio.sleep(1.1)
 
     for keyword, results in zip(INSTAGRAM_SEARCH_KEYWORDS, results_list):
         if isinstance(results, Exception):
