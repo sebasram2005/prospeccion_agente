@@ -32,107 +32,109 @@ logger = structlog.get_logger(__name__)
 
 SEARCH_CONFIGS = {
     # ── Upwork (10 keywords per pool) ────────────────────────────
+    # Removed "budget" from template — was filtering out too many results.
+    # Keywords aligned to portfolio's strongest differentiators.
     "upwork": {
         "pool_a": [
-            "Python developer",
-            "data analyst freelance",
-            "SaaS MVP developer",
-            "data pipeline engineer",
-            "ETL developer",
-            # Finance/Quant (NVIDIA, LATAM)
-            "financial modeling Python",
+            # Finance/Quant (NVIDIA project — highest value niche)
+            "financial model",
             "Monte Carlo simulation",
-            # ML/Data Science (Olist)
-            "machine learning engineer",
-            # BI (Power BI, Tableau, Looker)
-            "Power BI developer freelance",
-            # Forecasting (Favorita)
-            "demand forecasting developer",
+            "quantitative analyst",
+            # ML/Data Science (Olist project)
+            "churn prediction",
+            "machine learning prediction",
+            # Forecasting/Supply Chain (Favorita project)
+            "demand forecasting",
+            "inventory optimization",
+            # BI/Dashboards
+            "dashboard development",
+            "Streamlit",
+            # General (high volume, still relevant)
+            "Python data analysis",
         ],
         "pool_b": [
-            "Python developer",
-            "data analyst freelance",
-            "SaaS MVP developer",
-            "web scraping project",
             # Finance/Quant
-            "risk analysis developer",
+            "DCF valuation",
+            "risk analysis Python",
+            "credit scoring",
             # ML/Data Science
-            "customer segmentation analytics",
-            "predictive modeling freelance",
-            # Product/Full-Stack (UNfresh, JobPilot)
-            "FastAPI developer",
-            # AI/LLM (JobPilot)
-            "AI integration developer",
-            # BI
-            "Tableau developer",
+            "customer segmentation",
+            "predictive modeling",
+            # Supply Chain
+            "supply chain analytics",
+            # BI/Dashboards
+            "Tableau dashboard",
+            "KPI dashboard",
+            # Full-Stack/Backend
+            "Flask developer",
+            "Python automation",
         ],
-        "query_template": 'site:upwork.com/freelance-jobs "{keyword}" budget',
+        "query_template": 'site:upwork.com/freelance-jobs "{keyword}"',
     },
-    # ── LinkedIn (7 keywords per pool) ───────────────────────────
+    # ── LinkedIn (8 keywords per pool) ───────────────────────────
+    # Best source by volume. Use niche keywords that match job titles.
     "linkedin": {
         "pool_a": [
-            "Python developer remote contract",
-            "data analyst startup",
-            "backend engineer freelance",
-            "data engineer remote",
-            "Python automation",
-            # Finance/Quant
-            "financial analyst Python remote",
-            # ML
-            "machine learning engineer remote",
+            "quantitative analyst remote",
+            "data scientist contract",
+            "financial analyst Python",
+            "machine learning engineer contract",
+            "data analyst remote contract",
+            "business intelligence developer",
+            "data engineer contract",
+            "Python developer freelance",
         ],
         "pool_b": [
-            "Python developer remote contract",
-            "data analyst startup",
-            "backend engineer freelance",
-            "data engineer remote",
-            # ML
-            "data scientist remote contract",
-            # BI
-            "business intelligence analyst remote",
-            # Product
-            "full stack Python developer remote",
+            "forecasting analyst remote",
+            "analytics engineer remote",
+            "data scientist remote",
+            "Python backend developer remote",
+            "fintech data analyst",
+            "BI developer remote",
+            "full stack Python remote",
+            "data analyst contract",
         ],
         "query_template": 'site:linkedin.com/jobs "{keyword}"',
     },
     # ── WeWorkRemotely (5 keywords per pool) ─────────────────────
     "weworkremotely": {
         "pool_a": [
-            "Python developer",
             "data engineer",
-            "backend developer",
-            "full stack Python",
-            "data scientist",
+            "Python",
+            "data analyst",
+            "machine learning",
+            "full stack",
         ],
         "pool_b": [
+            "data scientist",
+            "backend engineer",
+            "analytics",
             "Python developer",
-            "data engineer",
-            "backend developer",
-            "machine learning",
-            "business intelligence",
+            "data",
         ],
         "query_template": 'site:weworkremotely.com "{keyword}"',
     },
     # ── Indeed (4 keywords per pool) ─────────────────────────────
+    # Fixed template: /viewjob returned 0 results, broadened to /jobs.
     "indeed": {
         "pool_a": [
-            "Python developer contract remote",
-            "data analyst freelance remote",
-            "Python automation remote",
-            "financial analyst Python remote",
+            "data analyst Python remote",
+            "quantitative analyst",
+            "Python developer contract",
+            "financial analyst remote",
         ],
         "pool_b": [
-            "Python developer contract remote",
-            "data analyst freelance remote",
-            "machine learning engineer remote",
-            "business intelligence developer remote",
+            "data scientist remote",
+            "machine learning engineer",
+            "business intelligence analyst",
+            "Python backend developer",
         ],
-        "query_template": 'site:indeed.com/viewjob "{keyword}"',
+        "query_template": 'site:indeed.com/jobs "{keyword}"',
     },
 }
-# Pool A: 10+7+5+4 = 26 queries/run
-# Pool B: 10+7+5+4 = 26 queries/run
-# 26 avg × 3 runs/day × 30 days = 2,340 queries/month (under 2,500 free tier)
+# Pool A: 10+8+5+4 = 27 queries/run
+# Pool B: 10+8+5+4 = 27 queries/run
+# 27 avg × 3 runs/day × 30 days = 2,430 queries/month (under 2,500 free tier)
 
 
 def _get_pool_for_run() -> str:
