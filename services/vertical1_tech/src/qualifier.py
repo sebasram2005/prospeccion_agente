@@ -6,6 +6,7 @@ Uses the Gemini REST API directly via httpx (no SDK dependency conflicts).
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 from pathlib import Path
@@ -49,10 +50,20 @@ class LeadQualifier:
         prompt_path = PROMPTS_DIR / "vertical1_system_prompt.txt"
         return prompt_path.read_text(encoding="utf-8")
 
-    async def qualify(self, raw_text: str) -> TechQualificationResult | None:
-        """Qualify a lead using Gemini. Returns None if not qualified or on error."""
+    async def qualify(self, raw_text: str, rate_limiter=None) -> TechQualificationResult | None:
+        """Qualify a lead using Gemini. Returns None if not qualified or on error.
+
+        Args:
+            raw_text: JSON string with lead data.
+            rate_limiter: GeminiRateLimiter — re-acquired before each attempt
+                          to properly count retries against the sliding window.
+        """
         max_retries = 3
         for attempt in range(1, max_retries + 1):
+            # Re-acquire rate limiter before every attempt (including retries)
+            if rate_limiter is not None:
+                await rate_limiter.acquire()
+
             try:
                 async with httpx.AsyncClient(timeout=30.0) as client:
                     resp = await client.post(
@@ -74,6 +85,23 @@ class LeadQualifier:
                             },
                         },
                     )
+
+                    # Handle 429 specifically: backoff and retry
+                    if resp.status_code == 429:
+                        backoff = min(2 ** attempt * 5, 30)  # 10s, 20s, 30s
+                        logger.warning(
+                            "gemini_429_backoff",
+                            attempt=attempt,
+                            backoff_seconds=backoff,
+                            vertical="tech",
+                        )
+                        if attempt < max_retries:
+                            await asyncio.sleep(backoff)
+                            continue
+                        else:
+                            logger.error("gemini_429_exhausted_retries", vertical="tech")
+                            return None
+
                     resp.raise_for_status()
 
                 body = resp.json()
@@ -119,6 +147,19 @@ class LeadQualifier:
                     logger.error(
                         "qualification_failed_all_retries", vertical="tech"
                     )
+                    return None
+
+            except httpx.HTTPStatusError as exc:
+                logger.error(
+                    "qualification_api_error",
+                    attempt=attempt,
+                    status_code=exc.response.status_code,
+                    error=str(exc),
+                    vertical="tech",
+                )
+                if attempt < max_retries:
+                    await asyncio.sleep(2 ** attempt)
+                else:
                     return None
 
             except Exception as exc:

@@ -77,11 +77,9 @@ async def process_lead(
     # 3. Enrich: fetch full page content via Jina Reader (best-effort)
     enriched_lead = await enricher.enrich_lead(lead)
 
-    # 4. Qualify with Gemini (now receives enriched data when available)
+    # 4. Qualify with Gemini (rate limiter re-acquired on each attempt inside qualify)
     raw_text = json.dumps(enriched_lead, indent=2)
-    await gemini_limiter.acquire()
-
-    result = await qualifier.qualify(raw_text)
+    result = await qualifier.qualify(raw_text, rate_limiter=gemini_limiter)
     if result is None:
         await repo.mark_as_processed(raw_lead_id)
         return
@@ -196,7 +194,7 @@ async def main(source: str) -> None:
     drafter = EmailDrafter()
     enricher = ContentEnricher()
     serper_client = SerperClient()
-    gemini_limiter = GeminiRateLimiter(max_per_minute=12)
+    gemini_limiter = GeminiRateLimiter(max_per_minute=10)
     hitl_url = os.environ.get("HITL_GATEWAY_URL", "")
 
     # Search via Serper API (all queries in parallel)
@@ -208,8 +206,8 @@ async def main(source: str) -> None:
 
     logger.info("search_complete", source=source, leads_found=len(leads))
 
-    # Process leads with bounded concurrency (avoid saturating Supabase/Gemini)
-    sem = asyncio.Semaphore(5)
+    # Process leads with bounded concurrency (3 to respect Gemini 15 RPM free tier)
+    sem = asyncio.Semaphore(3)
 
     async def _bounded(lead: dict) -> None:
         async with sem:
