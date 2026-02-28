@@ -1,9 +1,9 @@
 name: Vertical 2 — Cerrieta Scraper
 
 on:
-  schedule:
-    - cron: '45 */6 * * *'  # Google Maps: cada 6 horas
-    - cron: '30 */8 * * *'  # Instagram (via Serper): cada 8 horas (conserva quota)
+  # schedule:
+  #   - cron: '45 */6 * * *'  # Google Maps: cada 6 horas
+  #   - cron: '30 */8 * * *'  # Instagram (via Serper): cada 8 horas (conserva quota)
   workflow_dispatch:
     inputs:
       source:
