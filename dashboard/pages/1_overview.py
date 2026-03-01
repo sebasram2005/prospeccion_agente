@@ -63,7 +63,7 @@ st.markdown("<div style='height: 8px'></div>", unsafe_allow_html=True)
 if not raw.empty:
     st.markdown("#### Pipeline by Vertical")
     vertical_labels = {
-        "vertical1": ("🖥️", "Tech Services", "#6366F1"),
+        "tech": ("🖥️", "Tech Services", "#6366F1"),
     }
     verticals = [
         v for v in raw["vertical"].dropna().unique().tolist()

@@ -26,7 +26,7 @@ def get_raw_leads(days: int = 30) -> pd.DataFrame:
     result = (
         client.table("raw_leads")
         .select("id, source, vertical, url, raw_data, scraped_at, processed")
-        .eq("vertical", "vertical1")
+        .eq("vertical", "tech")
         .gte("scraped_at", since)
         .order("scraped_at", desc=True)
         .limit(1000)
@@ -53,7 +53,7 @@ def get_qualified_leads(days: int = 30) -> pd.DataFrame:
             "id, raw_lead_id, vertical, first_name, company_name, email, "
             "qualification_result, pain_point, qualified_at"
         )
-        .eq("vertical", "vertical1")
+        .eq("vertical", "tech")
         .gte("qualified_at", since)
         .order("qualified_at", desc=True)
         .limit(1000)
@@ -95,7 +95,7 @@ def get_email_queue(days: int = 30) -> pd.DataFrame:
             "id, qualified_lead_id, vertical, to_email, subject, body, "
             "status, created_at, updated_at"
         )
-        .eq("vertical", "vertical1")
+        .eq("vertical", "tech")
         .gte("created_at", since)
         .order("created_at", desc=True)
         .limit(500)
