@@ -157,7 +157,6 @@ fig3 = px.area(
 )
 fig3.update_layout(
     **CHART_LAYOUT,
-    height=300,
     legend=dict(
         orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
         font=dict(size=11),

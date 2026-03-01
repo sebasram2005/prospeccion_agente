@@ -29,7 +29,7 @@ class ApprovalRouter:
         self.email_sender = EmailSender()
         genai.configure(api_key=os.environ["GEMINI_API_KEY"])
         self.model = genai.GenerativeModel(
-            model_name="gemini-2.5-flash-lite-preview-06-17",
+            model_name="gemini-2.5-flash-lite",
             generation_config=genai.GenerationConfig(
                 temperature=0.3,
             ),
@@ -40,7 +40,7 @@ class ApprovalRouter:
         if not entry:
             return "Entry not found."
 
-        if entry["status"] not in ("pending", "edited"):
+        if entry["status"] not in ("pending", "approved", "edited"):
             return f"Cannot approve: status is '{entry['status']}'."
 
         source = entry.get("source", "email")
@@ -66,8 +66,8 @@ class ApprovalRouter:
             await self.repo.log_hitl_action(queue_id, "sent")
             return "Email sent successfully."
         else:
-            await self.repo.update_email_status(queue_id, "approved")
-            return "Email send failed. Status remains 'approved' for retry."
+            await self.repo.update_email_status(queue_id, "pending")
+            return "Email send failed. Status reset to 'pending' — tap Approve to retry."
 
     async def handle_reject(self, queue_id: str) -> str:
         entry = await self.repo.get_email_queue_entry(queue_id)

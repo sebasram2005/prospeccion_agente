@@ -42,6 +42,22 @@ class LeadsRepository:
             logger.error("get_email_queue_failed", queue_id=queue_id, error=str(exc))
             return None
 
+    async def get_editing_entry(self) -> dict | None:
+        """Find an email_queue entry currently in 'editing' state."""
+        try:
+            result = (
+                await self.supabase.table("email_queue")
+                .select("*")
+                .eq("status", "editing")
+                .order("updated_at", desc=True)
+                .limit(1)
+                .execute()
+            )
+            return result.data[0] if result.data else None
+        except Exception as exc:
+            logger.error("get_editing_entry_failed", error=str(exc))
+            return None
+
     async def update_email_status(
         self, queue_id: str, status: str, **extra_fields: str
     ) -> None:

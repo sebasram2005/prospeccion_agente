@@ -52,6 +52,9 @@ section[data-testid="stSidebar"] {
     background: linear-gradient(180deg, #0E1117 0%, #151520 100%);
     border-right: 1px solid rgba(99, 102, 241, 0.15);
 }
+section[data-testid="stSidebar"] * {
+    color: #FFFFFF !important;
+}
 
 /* ── Expanders ────────────────────────────────────────── */
 [data-testid="stExpander"] {
@@ -59,6 +62,10 @@ section[data-testid="stSidebar"] {
     border: 1px solid rgba(99, 102, 241, 0.15);
     border-radius: 10px;
     margin-bottom: 8px;
+}
+[data-testid="stExpander"] summary span p {
+    color: #FAFAFA !important;
+    font-weight: 500;
 }
 
 /* ── Dataframe ────────────────────────────────────────── */
