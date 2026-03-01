@@ -2,7 +2,8 @@
 HITL approval state machine.
 
 States:
-    PENDING ──[approve]──→ APPROVED ──[send()]──→ SENT
+    PENDING ──[approve]──→ APPROVED ──[send()]──→ SENT (email leads)
+    PENDING ──[approve]──→ APPROVED (platform leads — no email sent)
     PENDING ──[reject]───→ REJECTED
     PENDING ──[edit]─────→ EDITING
     EDITING ──[user text]──→ [re-draft LLM] ──→ PENDING (new draft)
@@ -17,7 +18,7 @@ import structlog
 
 from .db_client import LeadsRepository
 from .email_sender import EmailSender
-from .telegram_bot import send_approval_request
+from .telegram_bot import send_approval_request, PLATFORM_SOURCES
 
 logger = structlog.get_logger(__name__)
 
@@ -42,9 +43,17 @@ class ApprovalRouter:
         if entry["status"] not in ("pending", "edited"):
             return f"Cannot approve: status is '{entry['status']}'."
 
+        source = entry.get("source", "email")
+        is_platform = source in PLATFORM_SOURCES
+
         await self.repo.update_email_status(queue_id, "approved")
         await self.repo.log_hitl_action(queue_id, "approve")
 
+        # Platform leads: mark as approved, user applies manually
+        if is_platform:
+            return f"Marked as reviewed. Copy the proposal and apply on {source.title()}."
+
+        # Email leads: send automatically
         success = await self.email_sender.send(
             to_email=entry["to_email"],
             subject=entry["subject"],
@@ -89,13 +98,16 @@ class ApprovalRouter:
         if not entry:
             return None
 
+        source = entry.get("source", "email")
+        content_type = "proposal" if source == "upwork" else "email"
+
         prompt = (
-            f"You are an email editor. Rewrite the following email draft "
+            f"You are an {content_type} editor. Rewrite the following {content_type} draft "
             f"based on the operator's instructions.\n\n"
             f"ORIGINAL SUBJECT: {entry['subject']}\n\n"
             f"ORIGINAL BODY:\n{entry['body']}\n\n"
             f"EDIT INSTRUCTIONS: {instructions}\n\n"
-            f"Respond with ONLY the new email in this exact format:\n"
+            f"Respond with ONLY the new {content_type} in this exact format:\n"
             f"SUBJECT: <new subject>\n"
             f"BODY:\n<new body>"
         )
@@ -112,7 +124,6 @@ class ApprovalRouter:
                 )
                 new_body = parts[1].strip()
             else:
-                # Fallback: use entire response as body
                 new_subject = entry["subject"]
                 new_body = text
 

@@ -36,7 +36,7 @@ html, body, [class*="st-"] {
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #A0A0B8 !important;
+    color: #D1D1E0 !important;
 }
 [data-testid="stMetricValue"] {
     font-size: 1.8rem !important;
@@ -121,7 +121,7 @@ st.sidebar.markdown("""
     <div style="font-size: 1.1rem; font-weight: 700; color: #FAFAFA; letter-spacing: -0.02em;">
         Prospecting Agent
     </div>
-    <div style="font-size: 0.75rem; color: #8B8BA0; margin-top: 2px;">
+    <div style="font-size: 0.75rem; color: #C8C8D8; margin-top: 2px;">
         Autonomous B2B Lead Generation
     </div>
 </div>
@@ -142,7 +142,7 @@ st.sidebar.markdown("""
         <div style="width: 8px; height: 8px; background: #10B981; border-radius: 50%; box-shadow: 0 0 8px #10B981;"></div>
         <span style="font-size: 0.8rem; font-weight: 600; color: #10B981;">SYSTEM OPERATIONAL</span>
     </div>
-    <div style="font-size: 0.7rem; color: #6B7280; margin-top: 4px;">
+    <div style="font-size: 0.7rem; color: #9CA3B0; margin-top: 4px;">
         Scrapers run via GitHub Actions cron
     </div>
 </div>
@@ -157,22 +157,22 @@ st.sidebar.markdown("""
     padding: 10px 14px;
     margin-bottom: 12px;
 ">
-    <div style="font-size: 1.3rem; font-weight: 700; color: #A78BFA;">$0<span style="font-size: 0.75rem; color: #8B8BA0;">/month</span></div>
-    <div style="font-size: 0.7rem; color: #8B8BA0;">100% free-tier infrastructure</div>
+    <div style="font-size: 1.3rem; font-weight: 700; color: #A78BFA;">$0<span style="font-size: 0.75rem; color: #C8C8D8;">/month</span></div>
+    <div style="font-size: 0.7rem; color: #C8C8D8;">100% free-tier infrastructure</div>
 </div>
 """, unsafe_allow_html=True)
 
 # Tech stack
 st.sidebar.markdown("""
 <div style="margin-bottom: 8px;">
-    <div style="font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #6B7280; margin-bottom: 8px;">Tech Stack</div>
+    <div style="font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #9CA3B0; margin-bottom: 8px;">Tech Stack</div>
     <div style="display: flex; flex-wrap: wrap; gap: 4px;">
-        <span style="background: #1E1E2E; border: 1px solid #2A2A3E; padding: 3px 8px; border-radius: 6px; font-size: 0.68rem; color: #A0A0B8;">Python</span>
-        <span style="background: #1E1E2E; border: 1px solid #2A2A3E; padding: 3px 8px; border-radius: 6px; font-size: 0.68rem; color: #A0A0B8;">Gemini AI</span>
-        <span style="background: #1E1E2E; border: 1px solid #2A2A3E; padding: 3px 8px; border-radius: 6px; font-size: 0.68rem; color: #A0A0B8;">Supabase</span>
-        <span style="background: #1E1E2E; border: 1px solid #2A2A3E; padding: 3px 8px; border-radius: 6px; font-size: 0.68rem; color: #A0A0B8;">Cloud Run</span>
-        <span style="background: #1E1E2E; border: 1px solid #2A2A3E; padding: 3px 8px; border-radius: 6px; font-size: 0.68rem; color: #A0A0B8;">GitHub Actions</span>
-        <span style="background: #1E1E2E; border: 1px solid #2A2A3E; padding: 3px 8px; border-radius: 6px; font-size: 0.68rem; color: #A0A0B8;">Telegram Bot</span>
+        <span style="background: #1E1E2E; border: 1px solid #2A2A3E; padding: 3px 8px; border-radius: 6px; font-size: 0.68rem; color: #D1D1E0;">Python</span>
+        <span style="background: #1E1E2E; border: 1px solid #2A2A3E; padding: 3px 8px; border-radius: 6px; font-size: 0.68rem; color: #D1D1E0;">Gemini AI</span>
+        <span style="background: #1E1E2E; border: 1px solid #2A2A3E; padding: 3px 8px; border-radius: 6px; font-size: 0.68rem; color: #D1D1E0;">Supabase</span>
+        <span style="background: #1E1E2E; border: 1px solid #2A2A3E; padding: 3px 8px; border-radius: 6px; font-size: 0.68rem; color: #D1D1E0;">Cloud Run</span>
+        <span style="background: #1E1E2E; border: 1px solid #2A2A3E; padding: 3px 8px; border-radius: 6px; font-size: 0.68rem; color: #D1D1E0;">GitHub Actions</span>
+        <span style="background: #1E1E2E; border: 1px solid #2A2A3E; padding: 3px 8px; border-radius: 6px; font-size: 0.68rem; color: #D1D1E0;">Telegram Bot</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -181,13 +181,13 @@ st.sidebar.markdown("---")
 st.sidebar.markdown(
     '<div style="text-align:center;">'
     '<a href="https://github.com/sebasram2005/prospeccion_agente" target="_blank" '
-    'style="color: #6B7280; text-decoration: none; font-size: 0.75rem;">'
+    'style="color: #9CA3B0; text-decoration: none; font-size: 0.75rem;">'
     '↗ View Source on GitHub'
     '</a></div>',
     unsafe_allow_html=True,
 )
 st.sidebar.caption(
-    '<div style="text-align:center; color: #6B7280;">Built by Sebastian Ramirez</div>',
+    '<div style="text-align:center; color: #9CA3B0;">Built by Sebastian Ramirez</div>',
     unsafe_allow_html=True,
 )
 

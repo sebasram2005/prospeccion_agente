@@ -16,7 +16,7 @@ st.markdown("""
     <h1 style="margin:0; font-size: 1.8rem; font-weight: 700; letter-spacing: -0.03em;">
         📊 Analytics
     </h1>
-    <p style="color: #8B8BA0; font-size: 0.9rem; margin: 4px 0 0 0;">
+    <p style="color: #C8C8D8; font-size: 0.9rem; margin: 4px 0 0 0;">
         Source performance, conversion rates, and pipeline efficiency
     </p>
 </div>
@@ -38,7 +38,7 @@ if raw.empty:
 CHART_LAYOUT = dict(
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
-    font=dict(family="Inter", color="#A0A0B8"),
+    font=dict(family="Inter", color="#D1D1E0"),
     margin=dict(l=0, r=0, t=10, b=0),
     height=340,
     showlegend=False,

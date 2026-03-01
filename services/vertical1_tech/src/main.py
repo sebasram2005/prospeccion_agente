@@ -57,15 +57,18 @@ async def process_lead(
     """Process a single lead through the full pipeline."""
     url = lead.get("url", "")
 
+    # Resolve actual source (serper_search stores it as source_site)
+    lead_source = lead.get("source_site", source)
+
     # 1. Dedup check
     if url and await repo.is_duplicate(url):
-        logger.info("lead_skipped_duplicate", url=url, source=source)
+        logger.info("lead_skipped_duplicate", url=url, source=lead_source)
         return
 
     # 2. Insert raw lead
     raw_lead_id = await repo.insert_raw_lead(
         {
-            "source": source,
+            "source": lead_source,
             "vertical": "tech",
             "url": url,
             "raw_data": lead,
@@ -113,30 +116,38 @@ async def process_lead(
         await repo.mark_as_processed(raw_lead_id)
         return
 
-    # 8. Draft email
-    draft = drafter.draft(
+    # 8. Draft outreach (AI-generated via Gemini, adapts to platform)
+    is_platform_lead = lead_source in ("upwork", "linkedin", "weworkremotely", "indeed")
+    to_address = email or (f"apply-via-{lead_source}" if is_platform_lead else "pending@manual-lookup.com")
+
+    draft = await drafter.draft(
         first_name=first_name,
         company_name=company_name,
-        email=email or "pending@manual-lookup.com",
+        email=to_address,
         pain_point=result.pain_point,
         portfolio_proof=result.portfolio_proof,
+        suggested_angle=result.suggested_angle,
+        job_title=lead.get("title", ""),
+        budget_estimate=result.budget_estimate,
+        source=lead_source,
+        rate_limiter=gemini_limiter,
     )
     if not draft:
         await repo.mark_as_processed(raw_lead_id)
         return
 
-    # 9. Check email dedup
-    if draft.to_email != "pending@manual-lookup.com":
-        if await repo.is_already_emailed(draft.to_email):
+    # 10. Check email dedup (only for actual email outreach)
+    if not is_platform_lead and email:
+        if await repo.is_already_emailed(email):
             logger.info(
                 "lead_skipped_already_emailed",
-                email=draft.to_email,
-                source=source,
+                email=email,
+                source=lead_source,
             )
             await repo.mark_as_processed(raw_lead_id)
             return
 
-    # 10. Insert into email queue
+    # 11. Insert into email queue
     queue_id = await repo.create_email_queue_entry(
         {
             "qualified_lead_id": qualified_lead_id,
@@ -145,10 +156,12 @@ async def process_lead(
             "subject": draft.subject,
             "body": draft.body,
             "status": "pending",
+            "source": lead_source,
+            "job_url": url,
         }
     )
 
-    # 11. Notify HITL Gateway
+    # 12. Notify HITL Gateway
     if queue_id and hitl_url:
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:

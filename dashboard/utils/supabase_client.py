@@ -93,9 +93,8 @@ def get_email_queue(days: int = 30) -> pd.DataFrame:
         client.table("email_queue")
         .select(
             "id, qualified_lead_id, vertical, to_email, subject, body, "
-            "status, created_at, updated_at"
+            "status, source, job_url, created_at, updated_at"
         )
-        .eq("vertical", "tech")
         .gte("created_at", since)
         .order("created_at", desc=True)
         .limit(500)

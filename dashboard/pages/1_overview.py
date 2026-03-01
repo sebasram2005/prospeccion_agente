@@ -16,7 +16,7 @@ st.markdown("""
     <h1 style="margin:0; font-size: 1.8rem; font-weight: 700; letter-spacing: -0.03em;">
         ⚡ Command Center
     </h1>
-    <p style="color: #8B8BA0; font-size: 0.9rem; margin: 4px 0 0 0;">
+    <p style="color: #C8C8D8; font-size: 0.9rem; margin: 4px 0 0 0;">
         Real-time view of the autonomous prospecting pipeline
     </p>
 </div>
@@ -90,15 +90,15 @@ if not raw.empty:
                     <div style="font-size: 1.4rem; margin-bottom: 4px;">{icon}</div>
                     <div style="font-size: 0.85rem; font-weight: 600; color: {color}; margin-bottom: 10px;">{label}</div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                        <span style="font-size: 0.75rem; color: #8B8BA0;">Scraped</span>
+                        <span style="font-size: 0.75rem; color: #C8C8D8;">Scraped</span>
                         <span style="font-size: 0.85rem; font-weight: 600; color: #FAFAFA;">{v_raw}</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                        <span style="font-size: 0.75rem; color: #8B8BA0;">Qualified</span>
+                        <span style="font-size: 0.75rem; color: #C8C8D8;">Qualified</span>
                         <span style="font-size: 0.85rem; font-weight: 600; color: #FAFAFA;">{v_qual}</span>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                        <span style="font-size: 0.75rem; color: #8B8BA0;">Emails</span>
+                        <span style="font-size: 0.75rem; color: #C8C8D8;">Emails</span>
                         <span style="font-size: 0.85rem; font-weight: 600; color: #FAFAFA;">{v_emails}</span>
                     </div>
                     <div style="
@@ -107,7 +107,7 @@ if not raw.empty:
                         border-top: 1px solid {color}30;
                         display: flex; justify-content: space-between;
                     ">
-                        <span style="font-size: 0.75rem; color: #8B8BA0;">Conv. rate</span>
+                        <span style="font-size: 0.75rem; color: #C8C8D8;">Conv. rate</span>
                         <span style="font-size: 0.85rem; font-weight: 700; color: {color};">{v_rate}%</span>
                     </div>
                 </div>
@@ -121,7 +121,7 @@ col_funnel, col_dist = st.columns(2)
 CHART_LAYOUT = dict(
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
-    font=dict(family="Inter", color="#A0A0B8"),
+    font=dict(family="Inter", color="#D1D1E0"),
     margin=dict(l=0, r=0, t=10, b=0),
     height=320,
 )
@@ -212,7 +212,7 @@ if not raw.empty:
     fig3.update_layout(
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Inter", color="#A0A0B8"),
+        font=dict(family="Inter", color="#D1D1E0"),
         margin=dict(l=0, r=0, t=10, b=0),
         height=280,
         legend=dict(

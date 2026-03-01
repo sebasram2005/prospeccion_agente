@@ -12,16 +12,16 @@ STATUS_COLORS = {
 }
 
 SOURCE_COLORS = {
-    "upwork": "#14A800",
-    "linkedin": "#0A66C2",
-    "weworkremotely": "#4ECDC4",
-    "indeed": "#003A9B",
+    "upwork": "#22C55E",
+    "linkedin": "#60A5FA",
+    "weworkremotely": "#5EEAD4",
+    "indeed": "#818CF8",
     "serper": "#FF6B6B",
 }
 
 
 def status_badge(status: str) -> str:
-    color = STATUS_COLORS.get(status, "#6B7280")
+    color = STATUS_COLORS.get(status, "#9CA3B0")
     return (
         f'<span style="background:{color};color:white;padding:2px 10px;'
         f'border-radius:12px;font-size:0.72rem;font-weight:600;'

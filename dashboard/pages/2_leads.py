@@ -14,7 +14,7 @@ st.markdown("""
     <h1 style="margin:0; font-size: 1.8rem; font-weight: 700; letter-spacing: -0.03em;">
         🎯 Leads Explorer
     </h1>
-    <p style="color: #8B8BA0; font-size: 0.9rem; margin: 4px 0 0 0;">
+    <p style="color: #C8C8D8; font-size: 0.9rem; margin: 4px 0 0 0;">
         Browse, filter, and inspect every lead the system has captured
     </p>
 </div>
@@ -126,11 +126,11 @@ else:
             with col_a:
                 st.markdown(f"""
                 <div style="color: #FAFAFA; font-size: 0.9rem; line-height: 2;">
-                    <div><span style="color: #8B8BA0;">Source:</span> {row['source']}</div>
-                    <div><span style="color: #8B8BA0;">Contact:</span> {row.get('first_name') or '—'}</div>
-                    <div><span style="color: #8B8BA0;">Email:</span> {row.get('email') or '—'}</div>
-                    <div><span style="color: #8B8BA0;">Company:</span> {company or '—'}</div>
-                    <div><span style="color: #8B8BA0;">Website:</span> {row.get('company_website') or '—'}</div>
+                    <div><span style="color: #C8C8D8;">Source:</span> {row['source']}</div>
+                    <div><span style="color: #C8C8D8;">Contact:</span> {row.get('first_name') or '—'}</div>
+                    <div><span style="color: #C8C8D8;">Email:</span> {row.get('email') or '—'}</div>
+                    <div><span style="color: #C8C8D8;">Company:</span> {company or '—'}</div>
+                    <div><span style="color: #C8C8D8;">Website:</span> {row.get('company_website') or '—'}</div>
                 </div>
                 """, unsafe_allow_html=True)
             with col_b:
@@ -144,8 +144,8 @@ else:
                     text-align: center;
                     margin-bottom: 12px;
                 ">
-                    <div style="font-size: 2rem; font-weight: 700; color: {color};">{score}<span style="font-size: 1rem; color: #8B8BA0;">/10</span></div>
-                    <div style="font-size: 0.75rem; color: #8B8BA0; text-transform: uppercase; letter-spacing: 0.05em;">Fit Score</div>
+                    <div style="font-size: 2rem; font-weight: 700; color: {color};">{score}<span style="font-size: 1rem; color: #C8C8D8;">/10</span></div>
+                    <div style="font-size: 0.75rem; color: #C8C8D8; text-transform: uppercase; letter-spacing: 0.05em;">Fit Score</div>
                 </div>
                 """, unsafe_allow_html=True)
                 st.markdown(f'<div style="color:#FAFAFA;"><b>Suggested Angle:</b> {row.get("suggested_angle") or "—"}</div>', unsafe_allow_html=True)
