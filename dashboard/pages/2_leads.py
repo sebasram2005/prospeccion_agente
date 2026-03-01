@@ -89,7 +89,7 @@ display.columns = [
 ]
 display["Date"] = display["Date"].dt.strftime("%b %d, %H:%M")
 display["Vertical"] = display["Vertical"].map(
-    {"vertical1": "Tech Services"}
+    {"tech": "Tech Services"}
 ).fillna("—")
 
 st.dataframe(
@@ -125,20 +125,20 @@ else:
             col_a, col_b = st.columns(2)
             with col_a:
                 st.markdown(f"""
-                | Field | Value |
-                |:------|:------|
-                | **Source** | `{row['source']}` |
-                | **Contact** | {row.get('first_name') or '—'} |
-                | **Email** | {row.get('email') or '—'} |
-                | **Company** | {company or '—'} |
-                | **Website** | {row.get('company_website') or '—'} |
-                """)
+                <div style="color: #FAFAFA; font-size: 0.9rem; line-height: 2;">
+                    <div><span style="color: #8B8BA0;">Source:</span> {row['source']}</div>
+                    <div><span style="color: #8B8BA0;">Contact:</span> {row.get('first_name') or '—'}</div>
+                    <div><span style="color: #8B8BA0;">Email:</span> {row.get('email') or '—'}</div>
+                    <div><span style="color: #8B8BA0;">Company:</span> {company or '—'}</div>
+                    <div><span style="color: #8B8BA0;">Website:</span> {row.get('company_website') or '—'}</div>
+                </div>
+                """, unsafe_allow_html=True)
             with col_b:
                 # Score indicator
                 st.markdown(f"""
                 <div style="
-                    background: {color}18;
-                    border: 1px solid {color}50;
+                    background: {color}25;
+                    border: 1px solid {color}60;
                     border-radius: 10px;
                     padding: 12px 16px;
                     text-align: center;
@@ -148,12 +148,12 @@ else:
                     <div style="font-size: 0.75rem; color: #8B8BA0; text-transform: uppercase; letter-spacing: 0.05em;">Fit Score</div>
                 </div>
                 """, unsafe_allow_html=True)
-                st.markdown(f"**Suggested Angle:** {row.get('suggested_angle') or '—'}")
-                st.markdown(f"**Pain Point:** {row.get('pain_point') or '—'}")
+                st.markdown(f'<div style="color:#FAFAFA;"><b>Suggested Angle:</b> {row.get("suggested_angle") or "—"}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div style="color:#FAFAFA;"><b>Pain Point:</b> {row.get("pain_point") or "—"}</div>', unsafe_allow_html=True)
 
             if row.get("reasoning"):
-                st.markdown(f"**AI Reasoning:** {row['reasoning']}")
+                st.markdown(f'<div style="color:#FAFAFA;"><b>AI Reasoning:</b> {row["reasoning"]}</div>', unsafe_allow_html=True)
             if row.get("portfolio_proof"):
-                st.markdown(f"**Portfolio Proof:** {row['portfolio_proof']}")
+                st.markdown(f'<div style="color:#FAFAFA;"><b>Portfolio Proof:</b> {row["portfolio_proof"]}</div>', unsafe_allow_html=True)
             if row.get("url"):
                 st.markdown(f"[Open Original Post ↗]({row['url']})")
