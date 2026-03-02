@@ -106,6 +106,36 @@ class LeadsRepository:
             logger.error("create_email_queue_failed", error=str(exc))
             return None
 
+    async def fetch_unqualified_leads(self) -> list[dict]:
+        """Fetch raw_leads that were processed but never qualified (e.g. Gemini 403)."""
+        try:
+            raw = await (
+                self.supabase.table("raw_leads")
+                .select("id, source, url, raw_data")
+                .eq("vertical", "tech")
+                .eq("processed", True)
+                .execute()
+            )
+            if not raw.data:
+                return []
+
+            raw_ids = [r["id"] for r in raw.data]
+
+            qualified = await (
+                self.supabase.table("qualified_leads")
+                .select("raw_lead_id")
+                .in_("raw_lead_id", raw_ids)
+                .execute()
+            )
+            qualified_ids = {q["raw_lead_id"] for q in (qualified.data or [])}
+
+            unqualified = [r for r in raw.data if r["id"] not in qualified_ids]
+            logger.info("unqualified_leads_found", count=len(unqualified))
+            return unqualified
+        except Exception as exc:
+            logger.error("fetch_unqualified_failed", error=str(exc))
+            return []
+
     async def is_already_emailed(self, email: str) -> bool:
         try:
             result = (

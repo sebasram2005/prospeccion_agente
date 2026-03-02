@@ -17,8 +17,8 @@ rotated every run. Each platform appears in at least 2 pools for
 balanced coverage. Results are interleaved round-robin across sources
 to prevent any single platform from dominating the 30-lead cap.
 
-  Pool A (00:05 UTC): upwork+linkedin+wwr+indeed+wellfound+otta+remoteok
-  Pool B (08:05 UTC): upwork+linkedin+wwr+indeed+efin+wellfound+remoteok
+  Pool A (00:05 UTC): upwork+linkedin+wwr+glassdoor+wellfound+otta+remoteok
+  Pool B (08:05 UTC): upwork+linkedin+wwr+glassdoor+efin+wellfound+remoteok
   Pool C (16:05 UTC): upwork+linkedin+wellfound+otta+efin+remoteok
 """
 
@@ -39,7 +39,7 @@ logger = structlog.get_logger(__name__)
 TIME_FILTER: dict[str, str] = {
     "upwork": "qdr:w",
     "linkedin": "qdr:w",
-    "indeed": "qdr:w",
+    "glassdoor": "qdr:w",
     "weworkremotely": "qdr:m",
     "wellfound": "qdr:m",
     "otta": "qdr:m",
@@ -118,8 +118,9 @@ SEARCH_CONFIGS = {
         ],
         "query_template": 'site:weworkremotely.com "{keyword}"',
     },
-    # ── Indeed (pool_a: 3, pool_b: 3 = 6 keywords) ────────────
-    "indeed": {
+    # ── Glassdoor (pool_a: 3, pool_b: 3 = 6 keywords) ──────────
+    # Replaces Indeed (blocked Google indexing since 2017).
+    "glassdoor": {
         "pool_a": [
             "data analyst Python remote",
             "quantitative analyst",
@@ -130,7 +131,7 @@ SEARCH_CONFIGS = {
             "machine learning engineer",
             "business intelligence analyst",
         ],
-        "query_template": 'site:indeed.com/jobs "{keyword}"',
+        "query_template": 'site:glassdoor.com/job-listing "{keyword}"',
     },
     # ── Wellfound (pool_a: 4, pool_b: 3, pool_c: 5 = 12 keywords) ──
     "wellfound": {
@@ -210,8 +211,8 @@ SEARCH_CONFIGS = {
         "query_template": 'site:remoteok.com/remote-jobs "{keyword}"',
     },
 }
-# Pool A: 5+5+3+3+4+3+4 = 27 queries (upwork+linkedin+wwr+indeed+wellfound+otta+remoteok)
-# Pool B: 5+5+3+3+4+3+4 = 27 queries (upwork+linkedin+wwr+indeed+efin+wellfound+remoteok)
+# Pool A: 5+5+3+3+4+3+4 = 27 queries (upwork+linkedin+wwr+glassdoor+wellfound+otta+remoteok)
+# Pool B: 5+5+3+3+4+3+4 = 27 queries (upwork+linkedin+wwr+glassdoor+efin+wellfound+remoteok)
 # Pool C: 4+4+5+5+5+4   = 27 queries (upwork+linkedin+wellfound+otta+efin+remoteok)
 # 27 avg x 3 runs/day x 30 days = 2,430 queries/month (under 2,500 free tier)
 

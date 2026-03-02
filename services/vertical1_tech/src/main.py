@@ -118,7 +118,7 @@ async def process_lead(
 
     # 8. Draft outreach (AI-generated via Gemini, adapts to platform)
     is_platform_lead = lead_source in (
-        "upwork", "linkedin", "weworkremotely", "indeed",
+        "upwork", "linkedin", "weworkremotely", "glassdoor",
         "wellfound", "otta", "efinancialcareers", "remoteok",
     )
     to_address = email or (f"apply-via-{lead_source}" if is_platform_lead else "pending@manual-lookup.com")
@@ -202,6 +202,146 @@ async def process_lead(
     )
 
 
+async def requalify() -> None:
+    """Re-process raw_leads that failed qualification (e.g. Gemini 403)."""
+    logger.info("requalify_start", vertical="tech")
+
+    supabase = await get_supabase()
+    repo = LeadsRepository(supabase)
+    qualifier = LeadQualifier()
+    drafter = EmailDrafter()
+    enricher = ContentEnricher()
+    gemini_limiter = GeminiRateLimiter(max_per_minute=60)
+    hitl_url = os.environ.get("HITL_GATEWAY_URL", "")
+
+    unqualified = await repo.fetch_unqualified_leads()
+    if not unqualified:
+        logger.info("requalify_nothing_to_do")
+        return
+
+    sem = asyncio.Semaphore(10)
+
+    async def _process_one(row: dict) -> None:
+        async with sem:
+            raw_lead_id = row["id"]
+            lead = row.get("raw_data", {})
+            lead_source = lead.get("source_site", row.get("source", "unknown"))
+            url = row.get("url", "")
+
+            # Reset processed flag so pipeline can re-mark it
+            await repo.supabase.table("raw_leads").update(
+                {"processed": False}
+            ).eq("id", raw_lead_id).execute()
+
+            # Enrich
+            enriched_lead = await enricher.enrich_lead(lead)
+
+            # Qualify
+            raw_text = json.dumps(enriched_lead, indent=2)
+            result = await qualifier.qualify(raw_text, rate_limiter=gemini_limiter)
+            if result is None:
+                await repo.mark_as_processed(raw_lead_id)
+                return
+
+            company_name = result.inferred_company or lead.get("title", "your company")
+            first_name = result.contact_name or "Hiring Manager"
+            email = lead.get("email", "")
+
+            if not email and result.company_website:
+                scraped_email = await enricher.scrape_email_from_website(
+                    result.company_website
+                )
+                if scraped_email:
+                    email = scraped_email
+
+            qualified_lead_id = await repo.insert_qualified_lead(
+                {
+                    "raw_lead_id": raw_lead_id,
+                    "vertical": "tech",
+                    "first_name": first_name,
+                    "company_name": company_name,
+                    "email": email,
+                    "qualification_result": result.model_dump(),
+                    "pain_point": result.pain_point,
+                }
+            )
+            if not qualified_lead_id:
+                await repo.mark_as_processed(raw_lead_id)
+                return
+
+            is_platform_lead = lead_source in (
+                "upwork", "linkedin", "weworkremotely", "glassdoor",
+                "wellfound", "otta", "efinancialcareers", "remoteok",
+            )
+            to_address = email or (f"apply-via-{lead_source}" if is_platform_lead else "pending@manual-lookup.com")
+
+            draft = await drafter.draft(
+                first_name=first_name,
+                company_name=company_name,
+                email=to_address,
+                pain_point=result.pain_point,
+                portfolio_proof=result.portfolio_proof,
+                suggested_angle=result.suggested_angle,
+                job_title=lead.get("title", ""),
+                budget_estimate=result.budget_estimate,
+                source=lead_source,
+                pricing_model=result.pricing_model,
+                contract_value_tier=result.contract_value_tier,
+                rate_limiter=gemini_limiter,
+            )
+            if not draft:
+                await repo.mark_as_processed(raw_lead_id)
+                return
+
+            if not is_platform_lead and email:
+                if await repo.is_already_emailed(email):
+                    await repo.mark_as_processed(raw_lead_id)
+                    return
+
+            queue_id = await repo.create_email_queue_entry(
+                {
+                    "qualified_lead_id": qualified_lead_id,
+                    "vertical": "tech",
+                    "to_email": draft.to_email,
+                    "subject": draft.subject,
+                    "body": draft.body,
+                    "status": "pending",
+                    "source": lead_source,
+                    "job_url": url,
+                }
+            )
+
+            if queue_id and hitl_url:
+                try:
+                    async with httpx.AsyncClient(timeout=30.0) as client:
+                        resp = await client.post(
+                            f"{hitl_url.rstrip('/')}/notify",
+                            json={"queue_id": queue_id},
+                        )
+                        logger.info("hitl_notified", queue_id=queue_id, status=resp.status_code)
+                except Exception as exc:
+                    logger.error("hitl_notify_failed", queue_id=queue_id, error=str(exc))
+
+            await repo.mark_as_processed(raw_lead_id)
+            logger.info(
+                "lead_requalified",
+                raw_lead_id=raw_lead_id,
+                qualified_lead_id=qualified_lead_id,
+                queue_id=queue_id,
+                fit_score=result.fit_score,
+                source=lead_source,
+            )
+
+    results = await asyncio.gather(
+        *[_process_one(row) for row in unqualified], return_exceptions=True
+    )
+    for row, result in zip(unqualified, results):
+        if isinstance(result, Exception):
+            logger.error("requalify_error", raw_lead_id=row["id"], error=str(result))
+
+    logger.info("requalify_complete", total=len(unqualified), vertical="tech")
+
+
 async def main(source: str) -> None:
     logger.info("pipeline_start", source=source, vertical="tech")
 
@@ -216,7 +356,7 @@ async def main(source: str) -> None:
     hitl_url = os.environ.get("HITL_GATEWAY_URL", "")
 
     # Search via Serper API (all queries in parallel)
-    valid_sources = {"upwork", "linkedin", "weworkremotely", "indeed",
+    valid_sources = {"upwork", "linkedin", "weworkremotely", "glassdoor",
                      "wellfound", "otta", "efinancialcareers", "remoteok"}
     if source in valid_sources or source == "all":
         leads = await search_leads(serper_client, source)
@@ -261,10 +401,19 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Vertical 1 Tech Scraper")
     parser.add_argument(
         "--source",
-        required=True,
-        choices=["upwork", "linkedin", "weworkremotely", "indeed",
+        choices=["upwork", "linkedin", "weworkremotely", "glassdoor",
                  "wellfound", "otta", "efinancialcareers", "remoteok", "all"],
         help="Data source to search via Serper API",
     )
+    parser.add_argument(
+        "--requalify",
+        action="store_true",
+        help="Re-qualify raw_leads that failed qualification (e.g. after API key fix)",
+    )
     args = parser.parse_args()
-    asyncio.run(main(args.source))
+    if args.requalify:
+        asyncio.run(requalify())
+    elif args.source:
+        asyncio.run(main(args.source))
+    else:
+        parser.error("either --source or --requalify is required")
