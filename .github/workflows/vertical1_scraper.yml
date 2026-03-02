@@ -10,7 +10,7 @@ on:
         required: true
         default: 'all'
         type: choice
-        options: ['upwork', 'linkedin', 'weworkremotely', 'indeed', 'all']
+        options: ['upwork', 'linkedin', 'weworkremotely', 'indeed', 'wellfound', 'otta', 'efinancialcareers', 'remoteok', 'all']
 
 jobs:
   scrape:

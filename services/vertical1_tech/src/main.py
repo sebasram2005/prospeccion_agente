@@ -117,7 +117,10 @@ async def process_lead(
         return
 
     # 8. Draft outreach (AI-generated via Gemini, adapts to platform)
-    is_platform_lead = lead_source in ("upwork", "linkedin", "weworkremotely", "indeed")
+    is_platform_lead = lead_source in (
+        "upwork", "linkedin", "weworkremotely", "indeed",
+        "wellfound", "otta", "efinancialcareers", "remoteok",
+    )
     to_address = email or (f"apply-via-{lead_source}" if is_platform_lead else "pending@manual-lookup.com")
 
     draft = await drafter.draft(
@@ -130,6 +133,8 @@ async def process_lead(
         job_title=lead.get("title", ""),
         budget_estimate=result.budget_estimate,
         source=lead_source,
+        pricing_model=result.pricing_model,
+        contract_value_tier=result.contract_value_tier,
         rate_limiter=gemini_limiter,
     )
     if not draft:
@@ -211,7 +216,9 @@ async def main(source: str) -> None:
     hitl_url = os.environ.get("HITL_GATEWAY_URL", "")
 
     # Search via Serper API (all queries in parallel)
-    if source in ("upwork", "linkedin", "weworkremotely", "indeed", "all"):
+    valid_sources = {"upwork", "linkedin", "weworkremotely", "indeed",
+                     "wellfound", "otta", "efinancialcareers", "remoteok"}
+    if source in valid_sources or source == "all":
         leads = await search_leads(serper_client, source)
     else:
         logger.error("unknown_source", source=source)
@@ -255,7 +262,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--source",
         required=True,
-        choices=["upwork", "linkedin", "weworkremotely", "indeed", "all"],
+        choices=["upwork", "linkedin", "weworkremotely", "indeed",
+                 "wellfound", "otta", "efinancialcareers", "remoteok", "all"],
         help="Data source to search via Serper API",
     )
     args = parser.parse_args()
