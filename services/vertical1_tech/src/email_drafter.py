@@ -56,6 +56,8 @@ class EmailDrafter:
         job_title: str = "",
         budget_estimate: str = "",
         source: str = "email",
+        pricing_model: str = "hourly",
+        contract_value_tier: str = "standard",
         rate_limiter=None,
     ) -> EmailDraft | None:
         """Generate a personalized message using Gemini.
@@ -72,6 +74,8 @@ class EmailDrafter:
             "suggested_angle": suggested_angle,
             "job_title": job_title,
             "budget_estimate": budget_estimate,
+            "pricing_model": pricing_model,
+            "contract_value_tier": contract_value_tier,
         })
 
         max_retries = 3

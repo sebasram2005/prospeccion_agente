@@ -9,7 +9,7 @@
 - Email: sebastian@sebastianramirezanalytics.com
 
 ## Value Proposition
-I turn messy data into production-ready systems that drive revenue and cut risk — at a 40-60% cost advantage versus US/EU equivalents. I don't just analyze data; I build the automated pipelines, dashboards, and ML models that make data actionable.
+I turn messy data into production-ready systems that drive revenue and cut risk — at a 40-60% cost advantage versus US/EU equivalents. I don't just analyze data; I build the automated pipelines, dashboards, and ML models that make data actionable. I also offer fractional executive engagements — Fractional CFO and AI Product Strategy — for companies that need strategic leadership without full-time overhead.
 
 ## Portfolio Projects (with hard metrics)
 
@@ -64,6 +64,13 @@ I turn messy data into production-ready systems that drive revenue and cut risk 
 - Full-stack MVP development
 - Fractional CTO / tech stack audits
 - Cloud migration & API architecture
+
+## Fractional Executive & Strategic Consulting
+- Fractional CFO / AI-Product Strategy for growth-stage companies
+- Outcome-based engagement model: proof-of-value sprints with success metrics
+- Strategic consulting: data strategy roadmaps, analytics team building, vendor evaluation
+- Experience structuring engagements around business outcomes, not just deliverables
+- Bridge between C-suite strategy and hands-on technical execution
 
 ## Differentiators
 1. End-to-end: I go from raw data to deployed production system, not just notebooks

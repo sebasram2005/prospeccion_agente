@@ -8,13 +8,19 @@ import pandas as pd
 from utils.supabase_client import get_email_queue, get_qualified_leads, update_email_status
 from utils.helpers import STATUS_COLORS, SOURCE_COLORS
 
-PLATFORM_SOURCES = {"upwork", "linkedin", "weworkremotely", "indeed"}
+PLATFORM_SOURCES = {
+    "upwork", "linkedin", "weworkremotely", "indeed",
+    "wellfound", "otta", "efinancialcareers",
+}
 
 SOURCE_LABELS = {
     "upwork": "Upwork Proposal",
     "linkedin": "LinkedIn Message",
     "weworkremotely": "WWR Application",
     "indeed": "Indeed Application",
+    "wellfound": "Wellfound Application",
+    "otta": "Otta Application",
+    "efinancialcareers": "eFinancialCareers Application",
 }
 
 # ── Header ────────────────────────────────────────────────────────

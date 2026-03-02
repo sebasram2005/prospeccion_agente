@@ -39,6 +39,8 @@ class TechQualificationResult(BaseModel):
     contact_name: str
     company_website: str
     budget_estimate: str
+    pricing_model: Literal["hourly", "project", "retainer", "outcome-based"] = "hourly"
+    contract_value_tier: Literal["standard", "premium", "elite"] = "standard"
 
 
 class LeadQualifier:
@@ -133,6 +135,8 @@ class LeadQualifier:
                     angle=result.suggested_angle,
                     contact_name=result.contact_name,
                     company_website=result.company_website,
+                    pricing_model=result.pricing_model,
+                    contract_value_tier=result.contract_value_tier,
                 )
                 return result
 

@@ -33,13 +33,34 @@ Say NO only if:
 - Clearly unrelated (e.g., graphic design, content writing, marketing with no data/tech component)
 - Obviously a scam, spam, or training course ad
 
+PREMIUM ROLE DETECTION:
+Certain roles indicate high-value fractional/strategic engagements. When detected, apply enhanced scoring:
+- ELITE roles (auto 8+ fit_score): Fractional CFO, Fractional CTO, VP of Data/Analytics, Head of Data, Chief Data Officer, AI Strategy Lead, Quant Strategy Director
+- PREMIUM roles (auto 7+ fit_score): AI Product Manager, Founding PM, Strategic Finance Lead, Staff Economist, Senior Data Architect, Principal Engineer, Head of Analytics
+- Look for signals in title/description: "fractional", "founding", "strategic", "head of", "VP", "director", "principal", "staff", "chief"
+
 FIT SCORING (1-10):
 Rate how well this specific listing matches the professional's strongest capabilities:
-- 9-10: PERFECT FIT — Core strength match (quant finance, ML prediction, demand forecasting, inventory optimization). High budget (>$2K). Clear technical requirements that align with portfolio projects.
-- 7-8: STRONG FIT — Good domain match (dashboards, data pipelines, Python backend, statistical analysis). Medium-high budget ($1K-$2K). Requirements overlap with demonstrated skills.
+- 9-10: PERFECT FIT — Core strength match (quant finance, ML prediction, demand forecasting, inventory optimization). High budget (>$2K). Clear technical requirements that align with portfolio projects. OR elite-tier fractional executive role (Fractional CFO/CTO, VP, Head of) regardless of visible budget.
+- 7-8: STRONG FIT — Good domain match (dashboards, data pipelines, Python backend, statistical analysis). Medium-high budget ($1K-$2K). Requirements overlap with demonstrated skills. OR premium-tier strategic role (AI Product Manager, Founding PM, Strategic Finance Lead, Staff Economist).
 - 5-6: MODERATE FIT — General Python/data work that the professional can do but isn't a core differentiator. Budget $500-$1K. Some skill overlap.
 - 3-4: WEAK FIT — Tangential match. Low budget (<$500). Generic work where the professional has no competitive advantage.
 - 1-2: POOR FIT — Barely related. Would qualify as YES only because keywords match superficially.
+
+PRICING MODEL DETECTION:
+Analyze the job description to determine the pricing model:
+- "hourly": Explicit hourly rate, time-tracking mentions, "per hour"
+- "project": Fixed price, milestone-based, deliverable-based payment
+- "retainer": Monthly recurring, ongoing engagement, "per month", fractional roles with monthly commitment
+- "outcome-based": Success fee, performance bonus, equity/options mentioned, revenue share, "pay for results", "performance-based compensation"
+Default to "hourly" if unclear.
+
+CONTRACT VALUE TIER:
+Based on budget signals AND role seniority, classify:
+- "elite": >$150/hr OR >$10K/month OR C-level/VP/Head fractional role
+- "premium": $80-150/hr OR $5K-10K/month OR senior strategic role (Staff, Principal, Lead)
+- "standard": <$80/hr OR <$5K/month OR standard individual contributor role
+Default to "standard" if unclear.
 
 CONTACT EXTRACTION:
 From the full_description (when available), extract:
@@ -62,5 +83,7 @@ SCHEMA:
   "inferred_company": "Company or client name if visible in title/description/URL/full_description. Empty string if not identifiable.",
   "contact_name": "Name of the hiring manager or poster if found in the content. Empty string if not identifiable.",
   "company_website": "Company website URL if found in the content. Empty string if not found.",
-  "budget_estimate": "Estimated or explicit budget (e.g. '$2,000', '$1K-$5K', 'Hourly $50-80'). Empty string if not determinable."
+  "budget_estimate": "Estimated or explicit budget (e.g. '$2,000', '$1K-$5K', 'Hourly $50-80'). Empty string if not determinable.",
+  "pricing_model": "hourly" | "project" | "retainer" | "outcome-based",
+  "contract_value_tier": "standard" | "premium" | "elite"
 }

@@ -17,6 +17,9 @@ SOURCE_COLORS = {
     "weworkremotely": "#5EEAD4",
     "indeed": "#818CF8",
     "serper": "#FF6B6B",
+    "wellfound": "#FF7043",
+    "otta": "#AB47BC",
+    "efinancialcareers": "#26C6DA",
 }
 
 

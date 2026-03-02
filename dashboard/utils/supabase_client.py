@@ -82,6 +82,12 @@ def get_qualified_leads(days: int = 30) -> pd.DataFrame:
     df["company_website"] = df["qualification_result"].apply(
         lambda x: x.get("company_website", "") if isinstance(x, dict) else ""
     )
+    df["pricing_model"] = df["qualification_result"].apply(
+        lambda x: x.get("pricing_model", "hourly") if isinstance(x, dict) else "hourly"
+    )
+    df["contract_value_tier"] = df["qualification_result"].apply(
+        lambda x: x.get("contract_value_tier", "standard") if isinstance(x, dict) else "standard"
+    )
     return df
 
 

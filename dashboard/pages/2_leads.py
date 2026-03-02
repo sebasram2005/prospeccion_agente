@@ -36,7 +36,7 @@ if raw.empty:
 qual_cols = [
     "raw_lead_id", "fit_score", "first_name", "company_name", "email",
     "pain_point", "suggested_angle", "portfolio_proof", "reasoning",
-    "contact_name", "company_website",
+    "contact_name", "company_website", "pricing_model", "contract_value_tier",
 ]
 if not qualified.empty:
     merged = raw.merge(
@@ -150,6 +150,8 @@ else:
                 """, unsafe_allow_html=True)
                 st.markdown(f'<div style="color:#FAFAFA;"><b>Suggested Angle:</b> {row.get("suggested_angle") or "—"}</div>', unsafe_allow_html=True)
                 st.markdown(f'<div style="color:#FAFAFA;"><b>Pain Point:</b> {row.get("pain_point") or "—"}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div style="color:#FAFAFA;"><b>Pricing Model:</b> {row.get("pricing_model") or "—"}</div>', unsafe_allow_html=True)
+                st.markdown(f'<div style="color:#FAFAFA;"><b>Value Tier:</b> {row.get("contract_value_tier") or "—"}</div>', unsafe_allow_html=True)
 
             if row.get("reasoning"):
                 st.markdown(f'<div style="color:#FAFAFA;"><b>AI Reasoning:</b> {row["reasoning"]}</div>', unsafe_allow_html=True)
