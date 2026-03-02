@@ -2,14 +2,16 @@
 
 ## Identity
 - Name: Sebastian Ramirez
-- Role: Data Analyst, Python Developer & Quantitative Systems Engineer
+- Role: Data Analyst, Python Developer & Business Strategist
+- Level: Junior/Mid (~2 years hands-on experience)
+- Education: B.S. Economics (Quantitative Finance) + BBA (double degree)
 - Location: Colombia (remote, full overlap with US timezones)
-- English: C1 (professional fluency)
+- Languages: Spanish (native), English (C1), Portuguese (conversational)
 - Website: sebastianramirezanalytics.com
 - Email: sebastian@sebastianramirezanalytics.com
 
 ## Value Proposition
-I turn messy data into production-ready systems that drive revenue and cut risk — at a 40-60% cost advantage versus US/EU equivalents. I don't just analyze data; I build the automated pipelines, dashboards, and ML models that make data actionable. I also offer fractional executive engagements — Fractional CFO and AI Product Strategy — for companies that need strategic leadership without full-time overhead.
+I bridge the gap between technical data/software skills and business strategy. I don't just analyze data — I build the automated pipelines, dashboards, and ML models that make data actionable, and I translate the results into business decisions. With a double degree in Economics and Business, I bring both quantitative rigor and commercial awareness to every project — at a 40-60% cost advantage versus US/EU equivalents.
 
 ## Portfolio Projects (with hard metrics)
 
@@ -57,24 +59,18 @@ I turn messy data into production-ready systems that drive revenue and cut risk 
 - Optimization: OR-Tools (linear programming), Monte Carlo simulation
 
 ## Services Offered
-- Data analysis & pipeline engineering
+- Data analysis & pipeline engineering (ETL, cleaning, automation)
 - ML model development (prediction, segmentation, forecasting)
-- Dashboard & BI development
-- Quantitative finance modeling
-- Full-stack MVP development
-- Fractional CTO / tech stack audits
-- Cloud migration & API architecture
-
-## Fractional Executive & Strategic Consulting
-- Fractional CFO / AI-Product Strategy for growth-stage companies
-- Outcome-based engagement model: proof-of-value sprints with success metrics
-- Strategic consulting: data strategy roadmaps, analytics team building, vendor evaluation
-- Experience structuring engagements around business outcomes, not just deliverables
-- Bridge between C-suite strategy and hands-on technical execution
+- Dashboard & BI development (Tableau, Power BI, Looker, Streamlit)
+- Quantitative finance modeling (DCF, Monte Carlo, risk analysis)
+- Full-stack MVP development (Python + React/Next.js)
+- Web scraping & automation bots
+- API integration (CRMs, ERPs, third-party services)
 
 ## Differentiators
-1. End-to-end: I go from raw data to deployed production system, not just notebooks
-2. Quantifiable results: Every project has hard metrics (AUC, WAPE, % reduction)
+1. Hybrid profile: I bridge data/tech AND business strategy — I build the model AND explain the ROI
+2. Quantifiable results: Every project has hard metrics (AUC 0.89, WAPE 14.7%, stockout -42%)
 3. Cost advantage: 40-60% lower than US/EU equivalents, same timezone coverage
-4. Speed: I ship fast — MVPs in days, not weeks
-5. Engineering mindset: Clean code, async patterns, containerized deployments
+4. Speed: I ship fast — MVPs in days, not weeks. Entrepreneurial mindset, not corporate pace
+5. Multilingual: Native Spanish, C1 English, conversational Portuguese — ideal for LATAM/US clients
+6. Full-stack capable: From raw data to deployed production system, not just notebooks

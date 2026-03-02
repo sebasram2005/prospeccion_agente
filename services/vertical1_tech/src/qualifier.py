@@ -40,7 +40,7 @@ class TechQualificationResult(BaseModel):
     company_website: str
     budget_estimate: str
     pricing_model: Literal["hourly", "project", "retainer", "outcome-based"] = "hourly"
-    contract_value_tier: Literal["standard", "premium", "elite"] = "standard"
+    contract_value_tier: Literal["entry", "standard", "premium"] = "standard"
 
 
 class LeadQualifier:

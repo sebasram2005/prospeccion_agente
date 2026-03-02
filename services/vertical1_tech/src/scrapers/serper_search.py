@@ -7,10 +7,9 @@ with Serper.dev Google Search API queries.
 Google has already indexed job board pages, so we get results
 without touching Upwork/LinkedIn directly — no IP blocking.
 
-Keywords are aligned to the full portfolio at sebastianramirezanalytics.com:
-  Finance/Quant (NVIDIA, LATAM) · ML/Analytics (Olist) ·
-  Forecasting/Optimization (Favorita) · Product Engineering (UNfresh, JobPilot) ·
-  BI Dashboards (Power BI, Tableau, Looker) · AI/LLM Integration
+Keywords target mid-level roles (0-3 years experience) aligned to portfolio:
+  Data Analysis · Python Automation · ETL/Pipelines · BI Dashboards ·
+  ML/Forecasting · Financial Modeling · Full-Stack MVPs · Web Scraping
 
 Keywords are distributed across all 8 platforms in three pools (A/B/C),
 rotated every run. Each platform appears in at least 2 pools for
@@ -56,164 +55,178 @@ PER_SOURCE_CAP = 8
 # Sources may define any subset of pools; missing pools are silently skipped.
 
 SEARCH_CONFIGS = {
-    # ── Upwork (pool_a: 5, pool_b: 5, pool_c: 4 = 14 keywords) ──
+    # ── Upwork (pool_a: 5, pool_b: 5, pool_c: 5 = 15 keywords) ──
+    # Upwork is inherently freelance; no need for "remote"/"contract" qualifiers.
+    # VOLUME STRATEGY: Mix of quick-win small projects + mid-level deliverables.
+    # Priority on high-volume categories that generate reviews fast.
     "upwork": {
         "pool_a": [
-            "financial model",
-            "Monte Carlo simulation",
-            "churn prediction",
-            "demand forecasting",
-            "dashboard development",
+            "Python script",
+            "web scraping",
+            "data cleaning Python",
+            "Excel automation",
+            "Streamlit dashboard",
         ],
         "pool_b": [
-            "DCF valuation",
-            "credit scoring",
-            "predictive modeling",
-            "supply chain analytics",
-            "Python automation",
+            "Power BI dashboard",
+            "data analysis",
+            "Python bot",
+            "Google Sheets automation",
+            "PDF data extraction",
         ],
         "pool_c": [
-            "AI strategy consultant",
-            "fractional finance",
-            "quantitative modeling",
-            "fintech product manager",
+            "data visualization",
+            "API integration Python",
+            "financial model",
+            "SQL database",
+            "Python automation",
         ],
         "query_template": 'site:upwork.com/freelance-jobs "{keyword}"',
     },
     # ── LinkedIn (pool_a: 5, pool_b: 5, pool_c: 4 = 14 keywords) ──
+    # All keywords include "remote" or "contract" to filter out on-site/full-time.
+    # Targeting junior/mid roles: analyst, developer, engineer (not lead/head/VP).
     "linkedin": {
         "pool_a": [
-            "quantitative analyst remote",
-            "data scientist contract",
-            "financial analyst Python",
-            "machine learning engineer contract",
-            "business intelligence developer",
+            "data analyst remote contract",
+            "Python developer remote contract",
+            "business intelligence analyst remote",
+            "junior data scientist remote",
+            "financial analyst remote contract",
         ],
         "pool_b": [
-            "forecasting analyst remote",
-            "analytics engineer remote",
-            "Python backend developer remote",
-            "fintech data analyst",
-            "data analyst contract",
+            "analytics engineer remote contract",
+            "ETL developer remote",
+            "Python backend developer remote contract",
+            "data visualization analyst remote",
+            "BI developer remote contract",
         ],
         "pool_c": [
-            "fractional CFO remote",
-            "AI product strategy",
-            "head of analytics remote",
-            "founding PM fintech",
+            "machine learning engineer remote contract",
+            "data engineer remote contract",
+            "quantitative analyst remote contract",
+            "full stack developer remote contract",
         ],
         "query_template": 'site:linkedin.com/jobs "{keyword}"',
     },
     # ── WeWorkRemotely (pool_a: 3, pool_b: 3 = 6 keywords) ────
+    # Platform is 100% remote; no qualifier needed.
     "weworkremotely": {
         "pool_a": [
-            "data engineer",
-            "Python",
-            "machine learning",
+            "data analyst",
+            "Python developer",
+            "business intelligence",
         ],
         "pool_b": [
-            "data scientist",
-            "backend engineer",
+            "data engineer",
+            "backend developer",
             "analytics",
         ],
         "query_template": 'site:weworkremotely.com "{keyword}"',
     },
     # ── Glassdoor (pool_a: 3, pool_b: 3 = 6 keywords) ──────────
     # Replaces Indeed (blocked Google indexing since 2017).
+    # All keywords include "remote" — Glassdoor mixes on-site/remote heavily.
     "glassdoor": {
         "pool_a": [
             "data analyst Python remote",
-            "quantitative analyst",
-            "Python developer contract",
+            "junior data scientist remote",
+            "Python developer remote contract",
         ],
         "pool_b": [
-            "data scientist remote",
-            "machine learning engineer",
-            "business intelligence analyst",
+            "business intelligence analyst remote",
+            "financial analyst remote",
+            "ETL developer remote",
         ],
         "query_template": 'site:glassdoor.com/job-listing "{keyword}"',
     },
     # ── Wellfound (pool_a: 4, pool_b: 3, pool_c: 5 = 12 keywords) ──
+    # All keywords include "remote" — Wellfound mixes on-site startup jobs.
+    # Startups often value skills over years — good fit for entrepreneurial profile.
     "wellfound": {
         "pool_a": [
-            "data scientist startup",
-            "founding engineer",
-            "AI product manager",
-            "head of data",
+            "data analyst remote startup",
+            "Python developer remote startup",
+            "full stack developer remote startup",
+            "business intelligence remote startup",
         ],
         "pool_b": [
-            "fractional CFO",
-            "strategic finance lead",
-            "founding product manager",
+            "data engineer remote startup",
+            "backend developer remote startup",
+            "analytics engineer remote startup",
         ],
         "pool_c": [
-            "staff economist",
-            "fractional CTO",
-            "quantitative analyst",
-            "machine learning lead",
-            "analytics engineer",
+            "machine learning remote startup",
+            "fintech developer remote",
+            "quantitative analyst remote",
+            "data scientist remote startup",
+            "automation engineer remote startup",
         ],
         "query_template": 'site:wellfound.com/jobs "{keyword}"',
     },
     # ── Otta / Welcome to the Jungle (pool_a: 3, pool_c: 5 = 8 keywords) ──
+    # All keywords include "remote" — WTTJ mixes on-site/remote.
     "otta": {
         "pool_a": [
             "data analyst remote",
-            "Python developer",
-            "business intelligence",
+            "Python developer remote",
+            "business intelligence remote",
         ],
         "pool_c": [
-            "product strategy lead",
-            "data product manager",
-            "SaaS strategy",
-            "quantitative product manager",
-            "senior analytics",
+            "analytics engineer remote",
+            "data engineer remote",
+            "backend developer remote",
+            "full stack developer remote",
+            "BI analyst remote",
         ],
         "query_template": 'site:welcometothejungle.com/en "{keyword}"',
     },
     # ── eFinancialCareers (pool_b: 4, pool_c: 5 = 9 keywords) ──
+    # All keywords include "contract" or "remote" to filter full-time on-site.
+    # Targeting analyst-level finance roles, not quant researcher or director.
     "efinancialcareers": {
         "pool_b": [
-            "quantitative developer contract",
-            "risk consultant remote",
-            "financial engineer contract",
-            "derivatives analyst remote",
+            "financial analyst contract",
+            "risk analyst remote",
+            "data analyst finance remote",
+            "Python developer finance contract",
         ],
         "pool_c": [
-            "model validation contract",
-            "risk analyst remote",
-            "quantitative researcher",
-            "credit risk consultant",
-            "algo trading developer",
+            "quantitative analyst contract",
+            "credit analyst remote",
+            "financial data analyst remote",
+            "BI analyst finance remote",
+            "analytics developer remote contract",
         ],
         "query_template": 'site:efinancialcareers.com "{keyword}"',
     },
     # ── RemoteOK (pool_a: 4, pool_b: 4, pool_c: 4 = 12 keywords) ──
+    # Platform is 100% remote; no qualifier needed.
     "remoteok": {
         "pool_a": [
-            "data scientist",
-            "Python developer",
-            "machine learning",
             "data analyst",
+            "Python developer",
+            "data engineer",
+            "business intelligence",
         ],
         "pool_b": [
-            "data engineer",
             "backend developer",
+            "full stack",
             "analytics",
-            "quantitative analyst",
+            "machine learning",
         ],
         "pool_c": [
-            "AI engineer",
             "fintech",
-            "full stack Python",
-            "business intelligence",
+            "data scientist",
+            "automation",
+            "Python",
         ],
         "query_template": 'site:remoteok.com/remote-jobs "{keyword}"',
     },
 }
 # Pool A: 5+5+3+3+4+3+4 = 27 queries (upwork+linkedin+wwr+glassdoor+wellfound+otta+remoteok)
-# Pool B: 5+5+3+3+4+3+4 = 27 queries (upwork+linkedin+wwr+glassdoor+efin+wellfound+remoteok)
-# Pool C: 4+4+5+5+5+4   = 27 queries (upwork+linkedin+wellfound+otta+efin+remoteok)
+# Pool B: 5+5+3+3+3+4+4 = 27 queries (upwork+linkedin+wwr+glassdoor+efin+wellfound+remoteok)
+# Pool C: 5+4+5+5+5+4   = 28 queries (upwork+linkedin+wellfound+otta+efin+remoteok)
 # 27 avg x 3 runs/day x 30 days = 2,430 queries/month (under 2,500 free tier)
 
 
@@ -221,7 +234,7 @@ def _get_pool_for_run() -> str:
     """Determine which keyword pool to use for this run.
 
     Uses the current UTC hour to rotate among three pools:
-    hour 0 → pool_a (base), hour 8 → pool_b (base alt), hour 16 → pool_c (premium).
+    hour 0 → pool_a, hour 8 → pool_b, hour 16 → pool_c.
     With cron '*/8 * * * *' (hours 0, 8, 16) this produces A-B-C each day.
     """
     hour = datetime.now(timezone.utc).hour
@@ -230,7 +243,7 @@ def _get_pool_for_run() -> str:
     logger.info("keyword_pool_selected", pool=pool, utc_hour=hour)
     return pool
 
-MIN_BUDGET = int(os.environ.get("MIN_BUDGET_USD", "500"))
+MIN_BUDGET = int(os.environ.get("MIN_BUDGET_USD", "100"))
 
 
 def _extract_budget(text: str) -> int:

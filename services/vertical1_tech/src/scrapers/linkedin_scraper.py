@@ -18,11 +18,11 @@ from bs4 import BeautifulSoup
 logger = structlog.get_logger(__name__)
 
 SEARCH_QUERIES = [
-    "startup founder messy data",
-    "tech recruiter automation",
-    "fractional CFO data pipeline",
-    "agency owner scaling infrastructure",
-    "SaaS founder manual reporting",
+    "startup data analyst needed",
+    "small business Python automation",
+    "startup dashboard reporting",
+    "agency data pipeline help",
+    "SaaS analytics setup",
 ]
 
 USER_AGENTS = [
