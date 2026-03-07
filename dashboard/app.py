@@ -102,6 +102,18 @@ hr {
     border-color: rgba(99, 102, 241, 0.15) !important;
 }
 
+/* ── Sidebar navigation — always visible ──────────────── */
+[data-testid="stSidebarNav"] {
+    display: block !important;
+    visibility: visible !important;
+}
+[data-testid="stSidebarNav"] a {
+    color: #FAFAFA !important;
+}
+[data-testid="stSidebarNavItems"] {
+    display: block !important;
+}
+
 /* ── Hide default streamlit branding ──────────────────── */
 #MainMenu {visibility: hidden;}
 header {visibility: hidden;}

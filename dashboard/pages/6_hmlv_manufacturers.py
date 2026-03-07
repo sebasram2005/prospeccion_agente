@@ -33,6 +33,15 @@ from utils.helpers import (
     fit_score_color,
 )
 
+def _href(url: str) -> str:
+    """Ensure a URL has a protocol prefix so browsers treat it as absolute."""
+    if not url:
+        return url
+    if url.startswith(("http://", "https://")):
+        return url
+    return "https://" + url
+
+
 # ── Shared chart theme ────────────────────────────────────────────
 CHART = dict(
     paper_bgcolor="rgba(0,0,0,0)",
@@ -331,10 +340,12 @@ with tab_manufacturers:
     filter_cols = st.columns(4)
     with filter_cols[0]:
         all_industries_present = sorted(qualified["industry_category"].dropna().unique().tolist())
+        ind_display = {k: f"{INDUSTRY_ICONS.get(k,'')} {INDUSTRY_LABELS.get(k, k)}" for k in all_industries_present}
         sel_industries = st.multiselect(
-            "Industry", all_industries_present,
+            "Industry",
+            options=all_industries_present,
             default=all_industries_present,
-            format_option=lambda x: INDUSTRY_LABELS.get(x, x),
+            format_func=lambda x: ind_display.get(x, x),
             key="mfr_industry",
         )
     with filter_cols[1]:
@@ -420,7 +431,8 @@ with tab_manufacturers:
 
                 with c_left:
                     if website:
-                        st.markdown(f"🌐 [{website.replace('https://','').replace('http://','').rstrip('/') }]({website})")
+                        display_url = website.replace('https://','').replace('http://','').rstrip('/')
+                        st.markdown(f'🌐 <a href="{_href(website)}" target="_blank" rel="noopener noreferrer">{display_url}</a>', unsafe_allow_html=True)
                     if contact:
                         st.markdown(f"👤 **{contact}**" + (f" · `{email_val}`" if "@" in email_val else ""))
                     elif "@" in email_val:
@@ -470,7 +482,7 @@ with tab_manufacturers:
                     st.caption(f"🤖 {reasoning}")
 
                 if url:
-                    st.markdown(f"[View source page ↗]({url})")
+                    st.markdown(f'<a href="{_href(url)}" target="_blank" rel="noopener noreferrer">View source page ↗</a>', unsafe_allow_html=True)
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -581,7 +593,7 @@ with tab_outreach:
                 st.markdown(f"**Company:** {company}")
             with m3:
                 if row.get("job_url"):
-                    st.markdown(f"[View website ↗]({row['job_url']})")
+                    st.markdown(f'<a href="{_href(row["job_url"])}" target="_blank" rel="noopener noreferrer">View website ↗</a>', unsafe_allow_html=True)
 
             if pain:
                 st.markdown(f"""
@@ -777,7 +789,7 @@ with tab_intel:
         hm_pivot = hm_df.pivot(index="Keyword", columns="Industry", values="Count").fillna(0)
         fig_hm = px.imshow(
             hm_pivot,
-            color_continuous_scale=[[0, "#0E1117"], [0.3, "#6366F130"], [1, "#10B981"]],
+            color_continuous_scale=[[0, "#0E1117"], [0.3, "rgba(99,102,241,0.19)"], [1, "#10B981"]],
             aspect="auto",
             text_auto=True,
         )
