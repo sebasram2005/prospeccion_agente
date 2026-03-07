@@ -117,6 +117,7 @@ pages = [
     st.Page("pages/3_email_queue.py", title="Email Queue", icon="✉️"),
     st.Page("pages/4_analytics.py", title="Analytics", icon="📊"),
     st.Page("pages/5_architecture.py", title="System Architecture", icon="🏗️"),
+    st.Page("pages/6_hmlv_manufacturers.py", title="HMLV Manufacturers", icon="🏭"),
 ]
 
 nav = st.navigation(pages)

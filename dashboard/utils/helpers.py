@@ -15,11 +15,55 @@ SOURCE_COLORS = {
     "upwork": "#22C55E",
     "linkedin": "#60A5FA",
     "weworkremotely": "#5EEAD4",
-    "indeed": "#818CF8",
-    "serper": "#FF6B6B",
+    "glassdoor": "#818CF8",
+    "remoteok": "#FF6B6B",
     "wellfound": "#FF7043",
     "otta": "#AB47BC",
     "efinancialcareers": "#26C6DA",
+}
+
+# ── HMLV Vertical 3 ───────────────────────────────────────────────
+INDUSTRY_COLORS = {
+    "trade_show_exhibits":   "#F59E0B",
+    "marine_decking":        "#06B6D4",
+    "architectural_millwork":"#8B5CF6",
+    "industrial_crating":    "#EF4444",
+    "metal_facades":         "#6366F1",
+    "other":                 "#9CA3AF",
+}
+
+INDUSTRY_LABELS = {
+    "trade_show_exhibits":    "Trade Show",
+    "marine_decking":         "Marine Decking",
+    "architectural_millwork": "Millwork",
+    "industrial_crating":     "Ind. Crating",
+    "metal_facades":          "Metal Facades",
+    "other":                  "Other",
+}
+
+INDUSTRY_ICONS = {
+    "trade_show_exhibits":    "🏛️",
+    "marine_decking":         "⛵",
+    "architectural_millwork": "🪵",
+    "industrial_crating":     "📦",
+    "metal_facades":          "🔩",
+    "other":                  "🏭",
+}
+
+ANGLE_COLORS = {
+    "BOM-automation":     "#10B981",
+    "Nesting-optimization":"#6366F1",
+    "Quote-to-cash":      "#F59E0B",
+    "DXF-export":         "#EC4899",
+    "CAD-ERP-bridge":     "#8B5CF6",
+}
+
+HMLV_SOURCE_COLORS = {
+    "trade_show":    "#F59E0B",
+    "marine_decking":"#06B6D4",
+    "millwork":      "#8B5CF6",
+    "crating":       "#EF4444",
+    "metal_facades": "#6366F1",
 }
 
 
