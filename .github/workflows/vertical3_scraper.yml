@@ -1,0 +1,53 @@
+name: Vertical 3 — HMLV Manufacturer Scraper
+
+on:
+  # schedule:
+  #   - cron: '15 */8 * * *'  # Every 8h, offset from v1 (5 queries/run × 3/day = 450/month)
+  workflow_dispatch:
+    inputs:
+      source:
+        description: 'Industry sub-vertical to search'
+        required: true
+        default: 'all'
+        type: choice
+        options: ['trade_show', 'marine_decking', 'millwork', 'crating', 'metal_facades', 'all']
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r services/vertical3_hmlv/requirements.txt
+
+      - name: Determine source
+        id: source
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "source=${{ inputs.source }}" >> $GITHUB_OUTPUT
+          else
+            echo "source=all" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run scraper
+        working-directory: .
+        run: python -m services.vertical3_hmlv.src.main --source ${{ steps.source.outputs.source }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          HITL_GATEWAY_URL: ${{ secrets.HITL_GATEWAY_URL }}
+          SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
+          # SERPER_API_KEY_V3: ${{ secrets.SERPER_API_KEY_V3 }}  # Optional dedicated key
+          JINA_API_KEY: ${{ secrets.JINA_API_KEY }}
