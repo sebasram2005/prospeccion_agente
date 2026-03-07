@@ -1,8 +1,8 @@
 name: Vertical 3 — HMLV Manufacturer Scraper
 
 on:
-  # schedule:
-  #   - cron: '15 */8 * * *'  # Every 8h, offset from v1 (5 queries/run × 3/day = 450/month)
+  schedule:
+    - cron: '15 */8 * * *'  # Every 8h, offset from v1 (5 queries/run × 3/day = 450/month)
   workflow_dispatch:
     inputs:
       source:
