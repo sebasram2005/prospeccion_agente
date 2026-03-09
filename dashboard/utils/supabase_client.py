@@ -243,6 +243,96 @@ def get_hmlv_email_queue(days: int = 30) -> pd.DataFrame:
     return df
 
 
+# ── LGaaS Vertical 4 ─────────────────────────────────────────────
+
+@st.cache_data(ttl=300)
+def get_lgaas_raw_leads(days: int = 30) -> pd.DataFrame:
+    client = get_client()
+    since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    result = (
+        client.table("raw_leads")
+        .select("id, source, vertical, url, raw_data, scraped_at, processed")
+        .eq("vertical", "lgaas")
+        .gte("scraped_at", since)
+        .order("scraped_at", desc=True)
+        .limit(2000)
+        .execute()
+    )
+    if not result.data:
+        return pd.DataFrame()
+    df = pd.DataFrame(result.data)
+    df["scraped_at"] = pd.to_datetime(df["scraped_at"])
+    df["title"] = df["raw_data"].apply(
+        lambda x: x.get("title", "") if isinstance(x, dict) else ""
+    )
+    df["search_keyword"] = df["raw_data"].apply(
+        lambda x: x.get("search_keyword", "") if isinstance(x, dict) else ""
+    )
+    return df
+
+
+@st.cache_data(ttl=300)
+def get_lgaas_qualified_leads(days: int = 30) -> pd.DataFrame:
+    client = get_client()
+    since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    result = (
+        client.table("qualified_leads")
+        .select(
+            "id, raw_lead_id, vertical, first_name, company_name, email, "
+            "qualification_result, pain_point, qualified_at"
+        )
+        .eq("vertical", "lgaas")
+        .gte("qualified_at", since)
+        .order("qualified_at", desc=True)
+        .limit(2000)
+        .execute()
+    )
+    if not result.data:
+        return pd.DataFrame()
+    df = pd.DataFrame(result.data)
+    df["qualified_at"] = pd.to_datetime(df["qualified_at"])
+
+    def _get(row, key, default=""):
+        return row.get(key, default) if isinstance(row, dict) else default
+
+    df["fit_score"]           = df["qualification_result"].apply(lambda x: _get(x, "fit_score", 0))
+    df["niche_category"]      = df["qualification_result"].apply(lambda x: _get(x, "niche_category", "other"))
+    df["red_flags"]           = df["qualification_result"].apply(lambda x: _get(x, "red_flags", []))
+    df["green_flags"]         = df["qualification_result"].apply(lambda x: _get(x, "green_flags", []))
+    df["technical_reasoning"] = df["qualification_result"].apply(lambda x: _get(x, "technical_reasoning", ""))
+    df["estimated_ticket"]    = df["qualification_result"].apply(lambda x: _get(x, "estimated_ticket", ""))
+    df["company_website"]     = df["qualification_result"].apply(lambda x: _get(x, "company_website", ""))
+    df["suggested_angle"]     = df["qualification_result"].apply(lambda x: _get(x, "suggested_angle", ""))
+    df["inferred_company"]    = df["qualification_result"].apply(lambda x: _get(x, "inferred_company", ""))
+    df["contact_name"]        = df["qualification_result"].apply(lambda x: _get(x, "contact_name", ""))
+    df["contact_email"]       = df["qualification_result"].apply(lambda x: _get(x, "contact_email", ""))
+    return df
+
+
+@st.cache_data(ttl=300)
+def get_lgaas_email_queue(days: int = 30) -> pd.DataFrame:
+    client = get_client()
+    since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    result = (
+        client.table("email_queue")
+        .select(
+            "id, qualified_lead_id, vertical, to_email, subject, body, "
+            "status, source, job_url, created_at, updated_at"
+        )
+        .eq("vertical", "lgaas")
+        .gte("created_at", since)
+        .order("created_at", desc=True)
+        .limit(500)
+        .execute()
+    )
+    if not result.data:
+        return pd.DataFrame()
+    df = pd.DataFrame(result.data)
+    df["created_at"] = pd.to_datetime(df["created_at"])
+    df["updated_at"] = pd.to_datetime(df["updated_at"])
+    return df
+
+
 def update_email_status(queue_id: str, status: str) -> bool:
     """Update email queue status (for HITL approve/reject from dashboard)."""
     try:

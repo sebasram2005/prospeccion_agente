@@ -1,16 +1,16 @@
-name: Vertical 3 — HMLV Manufacturer Scraper
+name: Vertical 4 — LGaaS Prospects Scraper
 
 on:
-  # schedule:
-  #   - cron: '15 */8 * * *'  # Disabled — manual trigger only
+  schedule:
+    - cron: '25 */8 * * *'  # Every 8h, offset from v3 (5 queries/run × 3/day = 450/month)
   workflow_dispatch:
     inputs:
       source:
-        description: 'Industry sub-vertical to search'
+        description: 'Niche sub-vertical to search'
         required: true
         default: 'all'
         type: choice
-        options: ['trade_show', 'marine_decking', 'millwork', 'crating', 'metal_facades', 'all']
+        options: ['fractional_cfo', 'ma_advisory', 'cmmc_security', 'ai_automation', 'esg_consulting', 'all']
 
 jobs:
   scrape:
@@ -27,7 +27,7 @@ jobs:
           cache: 'pip'
 
       - name: Install dependencies
-        run: pip install -r services/vertical3_hmlv/requirements.txt
+        run: pip install -r services/vertical4_lgaas/requirements.txt
 
       - name: Determine source
         id: source
@@ -40,7 +40,7 @@ jobs:
 
       - name: Run scraper
         working-directory: .
-        run: python -m services.vertical3_hmlv.src.main --source ${{ steps.source.outputs.source }}
+        run: python -m services.vertical4_lgaas.src.main --source ${{ steps.source.outputs.source }}
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
@@ -49,5 +49,5 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           HITL_GATEWAY_URL: ${{ secrets.HITL_GATEWAY_URL }}
           SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
-          # SERPER_API_KEY_V3: ${{ secrets.SERPER_API_KEY_V3 }}  # Optional dedicated key
+          # SERPER_API_KEY_V4: ${{ secrets.SERPER_API_KEY_V4 }}  # Optional dedicated key
           JINA_API_KEY: ${{ secrets.JINA_API_KEY }}

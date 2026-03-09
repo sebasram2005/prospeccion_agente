@@ -66,6 +66,42 @@ HMLV_SOURCE_COLORS = {
     "metal_facades": "#6366F1",
 }
 
+# ── LGaaS Vertical 4 ──────────────────────────────────────────────
+LGAAS_NICHE_COLORS = {
+    "fractional_cfo":  "#10B981",
+    "ma_advisory":     "#6366F1",
+    "cmmc_security":   "#EF4444",
+    "ai_automation":   "#F59E0B",
+    "esg_consulting":  "#06B6D4",
+    "other":           "#9CA3AF",
+}
+
+LGAAS_NICHE_LABELS = {
+    "fractional_cfo":  "Fractional CFO",
+    "ma_advisory":     "M&A Advisory",
+    "cmmc_security":   "CMMC Security",
+    "ai_automation":   "AI Automation",
+    "esg_consulting":  "ESG Consulting",
+    "other":           "Other",
+}
+
+LGAAS_NICHE_ICONS = {
+    "fractional_cfo":  "💰",
+    "ma_advisory":     "🤝",
+    "cmmc_security":   "🔐",
+    "ai_automation":   "🤖",
+    "esg_consulting":  "🌱",
+    "other":           "🏢",
+}
+
+LGAAS_ANGLE_COLORS = {
+    "roi-calculator":       "#10B981",
+    "competitor-benchmark": "#6366F1",
+    "capacity-unlock":      "#F59E0B",
+    "cost-of-inaction":     "#EF4444",
+    "proof-of-concept":     "#8B5CF6",
+}
+
 
 def status_badge(status: str) -> str:
     color = STATUS_COLORS.get(status, "#9CA3B0")
