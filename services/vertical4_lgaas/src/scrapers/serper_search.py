@@ -40,7 +40,7 @@ SEARCH_CONFIGS: dict[str, dict[str, list[str]]] = {
     # ── Fractional CFO ────────────────────────────────────────────
     "fractional_cfo": {
         "pool_a": [
-            'site:linkedin.com/company/ "fractional CFO" (firm OR agency OR services) -hiring',
+            'intitle:"fractional CFO" (services OR firm OR agency) boutique -job -indeed -glassdoor',
         ],
         "pool_b": [
             'intitle:"fractional CFO" boutique (services OR advisory OR firm) -job -indeed',
@@ -53,7 +53,7 @@ SEARCH_CONFIGS: dict[str, dict[str, list[str]]] = {
     # ── M&A Advisory ──────────────────────────────────────────────
     "ma_advisory": {
         "pool_a": [
-            'site:linkedin.com/company/ "M&A advisory" "lower middle market" boutique -hiring',
+            'intitle:"M&A advisory" boutique "lower middle market" (firm OR advisors) -job -hiring',
         ],
         "pool_b": [
             'intitle:"mergers acquisitions" boutique (advisor OR advisory) "sell-side" OR "buy-side" -job',
@@ -92,7 +92,7 @@ SEARCH_CONFIGS: dict[str, dict[str, list[str]]] = {
     # ── ESG Consulting ────────────────────────────────────────────
     "esg_consulting": {
         "pool_a": [
-            'site:linkedin.com/company/ "ESG consulting" boutique (advisory OR firm OR services) -hiring',
+            'intitle:"ESG consulting" boutique (advisory OR firm OR services) -job -hiring -indeed',
         ],
         "pool_b": [
             'intitle:"ESG" OR intitle:"sustainability consulting" boutique "CSRD" compliance -job',
