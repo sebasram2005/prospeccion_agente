@@ -16,7 +16,7 @@ from typing import Literal
 
 import httpx
 import structlog
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, field_validator
 
 logger = structlog.get_logger(__name__)
 
@@ -53,6 +53,14 @@ class LGaaSQualificationResult(BaseModel):
         "cost-of-inaction",
         "proof-of-concept",
     ]
+
+    @field_validator("suggested_angle", mode="before")
+    @classmethod
+    def normalize_angle(cls, v: str) -> str:
+        """Gemini sometimes returns underscores instead of hyphens. Normalize both."""
+        if not v:
+            return "roi-calculator"
+        return v.replace("_", "-")
 
 
 class LeadQualifier:
