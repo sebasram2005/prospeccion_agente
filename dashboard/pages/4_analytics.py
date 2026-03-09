@@ -7,7 +7,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-from utils.supabase_client import get_raw_leads, get_qualified_leads, get_email_queue
+from utils.supabase_client import get_raw_leads, get_qualified_leads, get_email_queue, get_keyword_performance
 from utils.helpers import SOURCE_COLORS
 
 # ── Header ────────────────────────────────────────────────────────
@@ -171,3 +171,70 @@ fig3.update_layout(
     hovermode="x unified",
 )
 st.plotly_chart(fig3, use_container_width=True)
+
+# ── Keyword Performance ──────────────────────────────────────────
+st.markdown("#### Keyword Performance")
+kp_df = get_keyword_performance()
+
+if kp_df.empty:
+    st.info("No keyword performance data yet. Data populates after pipeline runs with keyword tracking enabled.")
+else:
+    # Summary table
+    display_df = kp_df[[
+        "keyword", "source", "leads_found", "leads_qualified",
+        "leads_approved", "leads_rejected", "avg_fit_score", "score",
+    ]].copy()
+    display_df.columns = [
+        "Keyword", "Source", "Found", "Qualified",
+        "Approved", "Rejected", "Avg Fit", "Score",
+    ]
+    display_df["Score"] = display_df["Score"].astype(float).round(3)
+    display_df["Avg Fit"] = display_df["Avg Fit"].astype(float).round(1)
+
+    st.dataframe(
+        display_df,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "Score": st.column_config.ProgressColumn(
+                "Score", min_value=0, max_value=1, format="%.3f",
+            ),
+        },
+    )
+
+    # Top 10 / Bottom 10 charts
+    col_top, col_bottom = st.columns(2)
+
+    with col_top:
+        st.markdown("##### Top 10 Keywords")
+        top10 = kp_df.nlargest(10, "score")
+        top10["label"] = top10["keyword"] + " (" + top10["source"] + ")"
+        fig_top = px.bar(
+            top10, x="score", y="label", orientation="h",
+            color="source", color_discrete_map=SOURCE_COLORS,
+            text=top10["score"].round(3),
+        )
+        fig_top.update_traces(textposition="outside", textfont_size=11)
+        fig_top.update_layout(
+            **CHART_LAYOUT,
+            yaxis=dict(autorange="reversed", gridcolor="rgba(0,0,0,0)"),
+            xaxis=dict(range=[0, 1.1], gridcolor="rgba(99,102,241,0.08)"),
+        )
+        st.plotly_chart(fig_top, use_container_width=True)
+
+    with col_bottom:
+        st.markdown("##### Bottom 10 Keywords")
+        bottom10 = kp_df.nsmallest(10, "score")
+        bottom10["label"] = bottom10["keyword"] + " (" + bottom10["source"] + ")"
+        fig_bot = px.bar(
+            bottom10, x="score", y="label", orientation="h",
+            color="source", color_discrete_map=SOURCE_COLORS,
+            text=bottom10["score"].round(3),
+        )
+        fig_bot.update_traces(textposition="outside", textfont_size=11)
+        fig_bot.update_layout(
+            **CHART_LAYOUT,
+            yaxis=dict(autorange="reversed", gridcolor="rgba(0,0,0,0)"),
+            xaxis=dict(range=[0, 1.1], gridcolor="rgba(99,102,241,0.08)"),
+        )
+        st.plotly_chart(fig_bot, use_container_width=True)

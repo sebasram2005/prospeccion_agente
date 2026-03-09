@@ -47,10 +47,36 @@ class LeadQualifier:
     def __init__(self):
         self.api_key = os.environ["GEMINI_API_KEY"].strip()
         self.system_prompt = self._load_system_prompt()
+        self._few_shot_cache: str = ""
 
     def _load_system_prompt(self) -> str:
         prompt_path = PROMPTS_DIR / "vertical1_system_prompt.txt"
         return prompt_path.read_text(encoding="utf-8")
+
+    def _format_few_shot_examples(self, decisions: list[dict]) -> str:
+        """Format recent HITL decisions as few-shot examples for the system prompt."""
+        if not decisions:
+            return ""
+
+        lines = ["\n\nRECENT EXAMPLES (from human reviewer decisions — calibrate your scoring accordingly):"]
+        for d in decisions:
+            title = d.get("title", "Unknown")[:80]
+            score = d.get("fit_score", 0)
+            reasoning = d.get("reasoning", "")[:120]
+            lines.append(f'{d["decision"]}: "{title}" → fit_score={score}, reason="{reasoning}"')
+
+        return "\n".join(lines)
+
+    async def load_few_shot_examples(self, repo) -> None:
+        """Load recent HITL decisions for few-shot injection. Call once before batch."""
+        try:
+            decisions = await repo.fetch_recent_decisions(limit=10)
+            self._few_shot_cache = self._format_few_shot_examples(decisions)
+            if decisions:
+                logger.info("few_shot_examples_loaded", count=len(decisions))
+        except Exception as exc:
+            logger.warning("few_shot_load_failed", error=str(exc))
+            self._few_shot_cache = ""
 
     async def qualify(self, raw_text: str, rate_limiter=None) -> TechQualificationResult | None:
         """Qualify a lead using Gemini. Returns None if not qualified or on error.
@@ -60,6 +86,9 @@ class LeadQualifier:
             rate_limiter: GeminiRateLimiter — re-acquired before each attempt
                           to properly count retries against the sliding window.
         """
+        # Build effective prompt with few-shot examples if available
+        effective_prompt = self.system_prompt + self._few_shot_cache
+
         max_retries = 3
         for attempt in range(1, max_retries + 1):
             # Re-acquire rate limiter before every attempt (including retries)
@@ -76,7 +105,7 @@ class LeadQualifier:
                         },
                         json={
                             "system_instruction": {
-                                "parts": [{"text": self.system_prompt}]
+                                "parts": [{"text": effective_prompt}]
                             },
                             "contents": [
                                 {"parts": [{"text": raw_text}]}

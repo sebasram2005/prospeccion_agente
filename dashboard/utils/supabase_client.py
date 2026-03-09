@@ -161,7 +161,7 @@ def get_hmlv_raw_leads(days: int = 30) -> pd.DataFrame:
     since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
     result = (
         client.table("raw_leads")
-        .select("id, source, vertical, url, raw_data, scraped_at, processed, search_keyword")
+        .select("id, source, vertical, url, raw_data, scraped_at, processed")
         .eq("vertical", "hmlv")
         .gte("scraped_at", since)
         .order("scraped_at", desc=True)
@@ -174,6 +174,9 @@ def get_hmlv_raw_leads(days: int = 30) -> pd.DataFrame:
     df["scraped_at"] = pd.to_datetime(df["scraped_at"])
     df["title"] = df["raw_data"].apply(
         lambda x: x.get("title", "") if isinstance(x, dict) else ""
+    )
+    df["search_keyword"] = df["raw_data"].apply(
+        lambda x: x.get("search_keyword", "") if isinstance(x, dict) else ""
     )
     return df
 

@@ -72,6 +72,7 @@ async def process_lead(
             "vertical": "tech",
             "url": url,
             "raw_data": lead,
+            "search_keyword": lead.get("search_keyword", ""),
         }
     )
     if not raw_lead_id:
@@ -178,14 +179,14 @@ async def process_lead(
                     "hitl_notified",
                     queue_id=queue_id,
                     status=resp.status_code,
-                    source=source,
+                    source=lead_source,
                 )
         except Exception as exc:
             logger.error(
                 "hitl_notify_failed",
                 queue_id=queue_id,
                 error=str(exc),
-                source=source,
+                source=lead_source,
             )
 
     await repo.mark_as_processed(raw_lead_id)
@@ -197,7 +198,7 @@ async def process_lead(
         fit_score=result.fit_score,
         contact_name=first_name,
         email_found=email != "",
-        source=source,
+        source=lead_source,
         vertical="tech",
     )
 
@@ -211,7 +212,7 @@ async def requalify() -> None:
     qualifier = LeadQualifier()
     drafter = EmailDrafter()
     enricher = ContentEnricher()
-    gemini_limiter = GeminiRateLimiter(max_per_minute=60)
+    gemini_limiter = GeminiRateLimiter(max_per_minute=12)
     hitl_url = os.environ.get("HITL_GATEWAY_URL", "")
 
     unqualified = await repo.fetch_unqualified_leads()
@@ -219,7 +220,7 @@ async def requalify() -> None:
         logger.info("requalify_nothing_to_do")
         return
 
-    sem = asyncio.Semaphore(10)
+    sem = asyncio.Semaphore(4)
 
     async def _process_one(row: dict) -> None:
         async with sem:
@@ -352,14 +353,20 @@ async def main(source: str) -> None:
     drafter = EmailDrafter()
     enricher = ContentEnricher()
     serper_client = SerperClient()
-    gemini_limiter = GeminiRateLimiter(max_per_minute=60)
+    gemini_limiter = GeminiRateLimiter(max_per_minute=12)
     hitl_url = os.environ.get("HITL_GATEWAY_URL", "")
+
+    # Load few-shot examples from recent HITL decisions
+    await qualifier.load_few_shot_examples(repo)
+
+    # Fetch keyword performance scores for adaptive selection
+    keyword_scores = await repo.fetch_keyword_scores()
 
     # Search via Serper API (all queries in parallel)
     valid_sources = {"upwork", "linkedin", "weworkremotely", "glassdoor",
                      "wellfound", "otta", "efinancialcareers", "remoteok"}
     if source in valid_sources or source == "all":
-        leads = await search_leads(serper_client, source)
+        leads = await search_leads(serper_client, source, keyword_scores=keyword_scores)
     else:
         logger.error("unknown_source", source=source)
         return
@@ -367,7 +374,7 @@ async def main(source: str) -> None:
     logger.info("search_complete", source=source, leads_found=len(leads))
 
     # Process leads with bounded concurrency
-    sem = asyncio.Semaphore(10)
+    sem = asyncio.Semaphore(4)
 
     async def _bounded(lead: dict) -> None:
         async with sem:
@@ -393,6 +400,9 @@ async def main(source: str) -> None:
                 error=str(result),
                 lead_url=lead.get("url", "unknown"),
             )
+
+    # Update keyword performance stats for adaptive selection
+    await repo.update_keyword_performance()
 
     logger.info("pipeline_complete", source=source, vertical="tech")
 
