@@ -27,6 +27,7 @@ import asyncio
 import os
 from collections import Counter
 from datetime import datetime, timezone
+from urllib.parse import urlparse
 
 import structlog
 
@@ -243,7 +244,7 @@ async def search_leads(serper_client, source: str) -> list[dict]:
 
 
 # Domains to skip — job boards, social media, news sites, directories
-_NOISE_DOMAINS = (
+_NOISE_DOMAINS: set[str] = {
     "indeed.com", "glassdoor.com", "linkedin.com", "ziprecruiter.com",
     "monster.com", "careerbuilder.com", "simplyhired.com",
     "amazon.com", "alibaba.com", "ebay.com",
@@ -251,10 +252,23 @@ _NOISE_DOMAINS = (
     "youtube.com", "reddit.com", "quora.com",
     "wikipedia.org", "bloomberg.com", "reuters.com",
     "yelp.com", "bbb.org", "crunchbase.com", "angellist.com",
-)
+}
 
 
 def _is_noise_domain(url: str) -> bool:
-    """Return True if the URL is from a noise domain to skip."""
-    url_lower = url.lower()
-    return any(domain in url_lower for domain in _NOISE_DOMAINS)
+    """Return True if the URL is from a noise domain to skip.
+
+    Uses exact netloc matching (via urllib.parse) to avoid false positives
+    like x.com matching apex.com. LinkedIn /company/ pages are allowed through
+    as they are high-signal targets for boutique consulting firm discovery.
+    """
+    try:
+        netloc = urlparse(url.lower()).netloc.removeprefix("www.")
+        # Allow LinkedIn company profile pages — useful signal for boutique firms
+        if netloc == "linkedin.com" and "/company/" in url.lower():
+            return False
+        return netloc in _NOISE_DOMAINS or any(
+            netloc.endswith("." + d) for d in _NOISE_DOMAINS
+        )
+    except Exception:
+        return True
