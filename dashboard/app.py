@@ -67,6 +67,21 @@ section[data-testid="stSidebar"] * {
     color: #FAFAFA !important;
     font-weight: 500;
 }
+/* Force all text inside expander content to be readable */
+[data-testid="stExpander"] p,
+[data-testid="stExpander"] span:not([data-testid]),
+[data-testid="stExpander"] li,
+[data-testid="stExpander"] label,
+[data-testid="stExpander"] .stMarkdown {
+    color: #FAFAFA !important;
+}
+/* Fix st.text() / pre blocks inside expanders */
+[data-testid="stExpander"] pre,
+[data-testid="stExpander"] code {
+    background: #12121F !important;
+    color: #E2E8F0 !important;
+    border: 1px solid rgba(99,102,241,0.2) !important;
+}
 
 /* ── Dataframe ────────────────────────────────────────── */
 [data-testid="stDataFrame"] {

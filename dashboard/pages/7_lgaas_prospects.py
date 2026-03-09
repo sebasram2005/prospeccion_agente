@@ -197,8 +197,7 @@ with tab1:
             color_discrete_map=LGAAS_ANGLE_COLORS,
         )
         fig_angle.update_layout(
-            **CHART,
-            height=280,
+            **{**CHART, "height": 280},
             xaxis=dict(gridcolor="rgba(0,0,0,0)"),
             yaxis=dict(gridcolor="rgba(99,102,241,0.08)"),
         )
@@ -269,7 +268,7 @@ with tab2:
                 with c2:
                     st.markdown(
                         f'<div style="font-size:2.5rem;font-weight:700;color:{score_color}">'
-                        f'{score}<span style="font-size:1rem;color:#9CA3AF">/10</span></div>',
+                        f'{score}<span style="font-size:1rem;color:#CBD5E1">/10</span></div>',
                         unsafe_allow_html=True,
                     )
                     angle = row.get("suggested_angle", "")
@@ -340,7 +339,14 @@ with tab3:
                     st.markdown(f"[View Firm Website]({_href(job_url)})")
 
                 st.markdown("**Email Body:**")
-                st.text(row.get("body", ""))
+                body_text = row.get("body", "").replace("\n", "<br>")
+                st.markdown(
+                    f'<div style="background:#12121F;border:1px solid rgba(99,102,241,0.2);'
+                    f'border-radius:8px;padding:14px 16px;font-size:0.88rem;'
+                    f'color:#E2E8F0;line-height:1.6;white-space:pre-wrap;">'
+                    f'{body_text}</div>',
+                    unsafe_allow_html=True,
+                )
 
                 if status == "pending":
                     ba, br = st.columns(2)
