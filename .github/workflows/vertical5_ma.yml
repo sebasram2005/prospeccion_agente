@@ -40,3 +40,5 @@ jobs:
           SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
           # SERPER_API_KEY_V5: ${{ secrets.SERPER_API_KEY_V5 }}  # Optional dedicated key
           JINA_API_KEY: ${{ secrets.JINA_API_KEY }}
+          MA_MIN_SCORE: "6"
+          MAX_LEADS_PER_RUN_V5: "40"

@@ -27,7 +27,7 @@ logger = structlog.get_logger(__name__)
 PROMPTS_DIR = Path(__file__).resolve().parents[3] / "shared" / "prompts"
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent"
 
-MIN_SCORE = int(os.environ.get("MA_MIN_SCORE", "7"))
+MIN_SCORE = int(os.environ.get("MA_MIN_SCORE", "6"))
 
 
 class MAQualificationResult(BaseModel):

@@ -35,7 +35,7 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 # Max leads kept per niche before round-robin interleaving.
-PER_SOURCE_CAP = 6
+PER_SOURCE_CAP = 12
 
 # ── Search configs: 4 niches × 3 pools × 1 query each ───────────────────────
 SEARCH_CONFIGS: dict[str, dict[str, list[str]]] = {
@@ -44,12 +44,15 @@ SEARCH_CONFIGS: dict[str, dict[str, list[str]]] = {
     "hvac_plumbing": {
         "pool_a": [
             '"HVAC" OR "air conditioning" "Florida" "family owned" "serving since 19" -job -hiring -careers',
+            '"HVAC" OR "heating and cooling" "Florida" "owner" "established" ("1980" OR "1985" OR "1990" OR "1995") -job',
         ],
         "pool_b": [
             'intitle:"HVAC" OR intitle:"plumbing" "Florida" "family business" "established" "19" -job -careers',
+            '("plumbing" OR "HVAC") "Florida" "locally owned" "serving" ("20 years" OR "25 years" OR "30 years" OR "35 years") -job',
         ],
         "pool_c": [
             '("plumbing" OR "mechanical services") "Florida" "family owned" "since 19" -job -ziprecruiter',
+            'site:bbb.org "Florida" ("HVAC" OR "plumbing" OR "air conditioning") "accredited since 19"',
         ],
     },
 
@@ -57,12 +60,15 @@ SEARCH_CONFIGS: dict[str, dict[str, list[str]]] = {
     "manufacturing": {
         "pool_a": [
             '("manufacturing" OR "machining") "Florida" "established in 19" "about us" -job -hiring',
+            '("precision machining" OR "custom fabrication") "Florida" "family owned" "since 19" -job -hiring',
         ],
         "pool_b": [
             'intitle:"manufacturing" OR intitle:"machining" "Florida" "family owned" "since 19" -careers -hiring',
+            '("sheet metal" OR "welding" OR "industrial") "Florida" "owner" "founded" ("1985" OR "1990" OR "1995" OR "2000") -job',
         ],
         "pool_c": [
             '("metal fabrication" OR "custom manufacturing") "Florida" "serving customers since 19" -job',
+            'site:thomasnet.com "Florida" ("HVAC" OR "manufacturing" OR "machining") "established"',
         ],
     },
 
@@ -70,12 +76,15 @@ SEARCH_CONFIGS: dict[str, dict[str, list[str]]] = {
     "b2b_saas": {
         "pool_a": [
             'intitle:"software" "Florida" "founded in" ("1995" OR "1998" OR "2000" OR "2002" OR "2005") "B2B" -job -hiring',
+            '("software company" OR "SaaS") "Florida" "founder" "operating since" ("199" OR "200") -job -linkedin',
         ],
         "pool_b": [
             '("B2B software" OR "enterprise software") "Florida" "founder" OR "CEO" "since 200" OR "since 199" -job -linkedin',
+            'site:g2.com "Florida" "software" ("founded: 199" OR "founded: 200" OR "founded: 2001" OR "founded: 2002")',
         ],
         "pool_c": [
             'site:clutch.co "Florida" "software" ("founded: 199" OR "founded: 200" OR "founded: 201")',
+            '("logistics software" OR "field service software" OR "ERP") "Florida" "owner" "founded" ("1995" OR "2000" OR "2003") -job',
         ],
     },
 
@@ -83,12 +92,15 @@ SEARCH_CONFIGS: dict[str, dict[str, list[str]]] = {
     "veteran_founders": {
         "pool_a": [
             'site:linkedin.com/in/ intitle:"Owner" "HVAC" "Florida" ("Class of 199" OR "Class of 198")',
+            'site:linkedin.com/in/ (intitle:"Owner" OR intitle:"Founder") "plumbing" "Florida" "19"',
         ],
         "pool_b": [
             'site:linkedin.com/in/ (intitle:"Owner" OR intitle:"Founder") "Manufacturing" "Florida" "19"',
+            'site:linkedin.com/in/ intitle:"Owner" ("metal fabrication" OR "machining") "Florida"',
         ],
         "pool_c": [
             'site:linkedin.com/in/ (intitle:"President" OR intitle:"CEO") "Florida" ("HVAC" OR "Plumbing" OR "Machining") "since 19"',
+            'site:linkedin.com/in/ (intitle:"Owner" OR intitle:"Founder") "Florida" ("B2B software" OR "SaaS") "since 200"',
         ],
     },
 }
@@ -127,7 +139,7 @@ async def search_leads(serper_client, source: str) -> list[dict]:
     Returns:
         list[dict] compatible with the pipeline.
     """
-    max_leads = int(os.environ.get("MAX_LEADS_PER_RUN_V5", "25"))
+    max_leads = int(os.environ.get("MAX_LEADS_PER_RUN_V5", "40"))
     seen_urls: set[str] = set()
 
     active_sources = list(SEARCH_CONFIGS.keys()) if source == "all" else [source]
