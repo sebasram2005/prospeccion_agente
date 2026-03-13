@@ -333,6 +333,94 @@ def get_lgaas_email_queue(days: int = 30) -> pd.DataFrame:
     return df
 
 
+# ── M&A Silver Tsunami Vertical 5 ────────────────────────────────
+
+@st.cache_data(ttl=300)
+def get_ma_raw_leads(days: int = 30) -> pd.DataFrame:
+    client = get_client()
+    since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    result = (
+        client.table("raw_leads")
+        .select("id, source, vertical, url, raw_data, scraped_at, processed")
+        .eq("vertical", "ma")
+        .gte("scraped_at", since)
+        .order("scraped_at", desc=True)
+        .limit(2000)
+        .execute()
+    )
+    if not result.data:
+        return pd.DataFrame()
+    df = pd.DataFrame(result.data)
+    df["scraped_at"] = pd.to_datetime(df["scraped_at"])
+    df["title"] = df["raw_data"].apply(
+        lambda x: x.get("title", "") if isinstance(x, dict) else ""
+    )
+    df["search_keyword"] = df["raw_data"].apply(
+        lambda x: x.get("search_keyword", "") if isinstance(x, dict) else ""
+    )
+    return df
+
+
+@st.cache_data(ttl=300)
+def get_ma_qualified_leads(days: int = 30) -> pd.DataFrame:
+    client = get_client()
+    since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    result = (
+        client.table("qualified_leads")
+        .select(
+            "id, raw_lead_id, vertical, first_name, company_name, email, "
+            "qualification_result, pain_point, qualified_at"
+        )
+        .eq("vertical", "ma")
+        .gte("qualified_at", since)
+        .order("qualified_at", desc=True)
+        .limit(2000)
+        .execute()
+    )
+    if not result.data:
+        return pd.DataFrame()
+    df = pd.DataFrame(result.data)
+    df["qualified_at"] = pd.to_datetime(df["qualified_at"])
+
+    def _get(row, key, default=""):
+        return row.get(key, default) if isinstance(row, dict) else default
+
+    df["fit_score"]             = df["qualification_result"].apply(lambda x: _get(x, "fit_score", 0))
+    df["founder_name"]          = df["qualification_result"].apply(lambda x: _get(x, "founder_name", ""))
+    df["estimated_years_active"]= df["qualification_result"].apply(lambda x: _get(x, "estimated_years_active", ""))
+    df["momentum_signal"]       = df["qualification_result"].apply(lambda x: _get(x, "momentum_signal", ""))
+    df["industry_niche"]        = df["qualification_result"].apply(lambda x: _get(x, "industry_niche", ""))
+    df["suggested_angle"]       = df["qualification_result"].apply(lambda x: _get(x, "suggested_angle", ""))
+    df["contact_email"]         = df["qualification_result"].apply(lambda x: _get(x, "contact_email", ""))
+    df["company_website"]       = df["qualification_result"].apply(lambda x: _get(x, "company_website", ""))
+    df["is_qualified"]          = df["qualification_result"].apply(lambda x: _get(x, "is_qualified", False))
+    return df
+
+
+@st.cache_data(ttl=300)
+def get_ma_email_queue(days: int = 30) -> pd.DataFrame:
+    client = get_client()
+    since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    result = (
+        client.table("email_queue")
+        .select(
+            "id, qualified_lead_id, vertical, to_email, subject, body, "
+            "status, source, job_url, created_at, updated_at"
+        )
+        .eq("vertical", "ma")
+        .gte("created_at", since)
+        .order("created_at", desc=True)
+        .limit(500)
+        .execute()
+    )
+    if not result.data:
+        return pd.DataFrame()
+    df = pd.DataFrame(result.data)
+    df["created_at"] = pd.to_datetime(df["created_at"])
+    df["updated_at"] = pd.to_datetime(df["updated_at"])
+    return df
+
+
 def update_email_status(queue_id: str, status: str) -> bool:
     """Update email queue status (for HITL approve/reject from dashboard)."""
     try:

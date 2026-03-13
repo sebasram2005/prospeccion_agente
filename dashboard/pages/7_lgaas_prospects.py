@@ -212,7 +212,7 @@ with tab2:
         st.info("No qualified prospects yet. Run the scraper to populate.")
     else:
         # Filters
-        fc1, fc2, fc3 = st.columns(3)
+        fc1, fc2, fc3, fc4 = st.columns(4)
         with fc1:
             niche_options = ["All"] + sorted(qualified["niche_category"].unique().tolist())
             niche_filter = st.selectbox("Niche", niche_options, key="lgaas_niche_filter")
@@ -221,6 +221,12 @@ with tab2:
         with fc3:
             email_filter = st.selectbox(
                 "Email", ["All", "With email", "Without email"], key="lgaas_email_filter"
+            )
+        with fc4:
+            sort_order = st.selectbox(
+                "Sort by date",
+                ["Newest first", "Oldest first"],
+                key="lgaas_sort_order",
             )
 
         filtered = qualified.copy()
@@ -232,9 +238,12 @@ with tab2:
         elif email_filter == "Without email":
             filtered = filtered[~filtered["email"].astype(str).str.contains("@", na=False)]
 
+        date_asc = sort_order == "Oldest first"
+        filtered = filtered.sort_values("qualified_at", ascending=date_asc)
+
         st.caption(f"Showing {len(filtered)} of {len(qualified)} qualified prospects")
 
-        for _, row in filtered.sort_values("fit_score", ascending=False).iterrows():
+        for _, row in filtered.iterrows():
             niche = row.get("niche_category", "other")
             niche_icon = LGAAS_NICHE_ICONS.get(niche, "🏢")
             niche_label = LGAAS_NICHE_LABELS.get(niche, niche)

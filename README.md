@@ -1,6 +1,6 @@
 # Autonomous B2B Prospecting Agent
 
-**Fully automated lead generation, qualification, and outreach — 4 active verticals, ~$0.50/month operational cost.**
+**Fully automated lead generation, qualification, and outreach — 5 active verticals, ~$0.50/month operational cost.**
 
 An AI-powered prospecting system that autonomously discovers leads across multiple B2B markets, enriches them with full-page content analysis, qualifies via LLM scoring with adaptive feedback loops, drafts hyper-personalized cold emails, and routes them through a human-in-the-loop (HITL) approval flow via Telegram — all running on free-tier infrastructure.
 
@@ -20,6 +20,7 @@ An AI-powered prospecting system that autonomously discovers leads across multip
 | **V2** | Cerrieta — Luxury Pet | Pet boutiques, interior designers (Google Maps + IG) | Serper + Places API | Manual | ~300 queries/mo |
 | **V3** | HMLV Manufacturers | Custom manufacturers (trade show, marine, millwork, crating, metal) | Serper Google Dorks | Manual | 450 queries/mo |
 | **V4** | LGaaS Prospects | Boutique consulting firms (Fractional CFO, M&A, CMMC, AI, ESG) | Serper Google Dorks | `25 */8 * * *` | 450 queries/mo |
+| **V5** | M&A Silver Tsunami | Traditional Florida business owners (HVAC, manufacturing, legacy SaaS) near succession | Serper Google Dorks | Manual | ~360 queries/mo |
 
 ---
 
@@ -111,8 +112,8 @@ flowchart TD
 ## Key Features
 
 ### Multi-Vertical Architecture
-- **4 independent pipelines** sharing infrastructure (Supabase, Gemini, Jina, HITL Gateway)
-- Each vertical targets a distinct ICP: freelance clients, B2C boutiques, B2B manufacturers, consulting firms
+- **5 independent pipelines** sharing infrastructure (Supabase, Gemini, Jina, HITL Gateway)
+- Each vertical targets a distinct ICP: freelance clients, B2C boutiques, B2B manufacturers, consulting firms, M&A acquisition targets
 - All filtered through the same `vertical` column in the database — zero schema duplication
 - Per-vertical `SERPER_API_KEY_Vn` support for budget isolation
 
@@ -286,6 +287,15 @@ prospecting-agent/
 │   │       └── scrapers/
 │   │           └── serper_search.py  # 5 niches × 3 pools
 │   │
+│   ├── vertical5_ma/               # M&A Silver Tsunami pipeline
+│   │   └── src/
+│   │       ├── main.py
+│   │       ├── qualifier.py        # MAQualificationResult (10 fields)
+│   │       ├── email_drafter.py    # Outreach from Eduardo / SunBridge Advisors
+│   │       ├── db_client.py
+│   │       └── scrapers/
+│   │           └── serper_search.py  # 4 niches × 3 pools (incl. LinkedIn /in/)
+│   │
 │   └── hitl_gateway/               # Cloud Run: Telegram approval + email sending
 │       ├── src/
 │       │   ├── main.py             # FastAPI app (/notify, /webhook, /send)
@@ -302,7 +312,9 @@ prospecting-agent/
 │   │   ├── vertical3_system_prompt.txt   # HMLV manufacturer rubric
 │   │   ├── vertical3_email_prompt.txt    # HMLV email drafter prompt
 │   │   ├── vertical4_system_prompt.txt   # LGaaS firm rubric
-│   │   └── vertical4_email_prompt.txt    # LGaaS email drafter prompt
+│   │   ├── vertical4_email_prompt.txt    # LGaaS email drafter prompt
+│   │   ├── vertical5_system_prompt.txt   # M&A Silver Tsunami acquisition rubric
+│   │   └── vertical5_email_prompt.txt    # SunBridge Advisors confidential outreach prompt
 │   └── utils/
 │       ├── content_enricher.py     # Jina Reader + email scraping
 │       ├── serper_client.py        # Serper.dev API wrapper
@@ -379,7 +391,7 @@ BREVO_SMTP_PASSWORD       GOOGLE_PLACES_API_KEY
 
 Optional per-vertical Serper keys (to isolate budgets):
 ```
-SERPER_API_KEY_V3         SERPER_API_KEY_V4
+SERPER_API_KEY_V3         SERPER_API_KEY_V4         SERPER_API_KEY_V5
 ```
 
 ### 6. Dashboard
@@ -400,9 +412,12 @@ cp .env.example .env
 python -m services.vertical1_tech.src.main --source all
 python -m services.vertical3_hmlv.src.main --source millwork
 python -m services.vertical4_lgaas.src.main --source fractional_cfo
+python -m services.vertical5_ma.src.main --source all
+python -m services.vertical5_ma.src.main --source hvac_plumbing
 
 # Re-qualify failed leads
 python -m services.vertical4_lgaas.src.main --requalify
+python -m services.vertical5_ma.src.main --requalify
 
 # Dashboard
 cd dashboard && streamlit run app.py
@@ -439,6 +454,15 @@ cd dashboard && streamlit run app.py
 - **5 outreach angles**: roi-calculator, competitor-benchmark, capacity-unlock, cost-of-inaction, proof-of-concept
 - **Hook**: ROI math — breaking even requires closing 0.4 clients/year ($24k cost vs. $60k+ gross margin)
 - **Budget**: 5 queries/run × 3/day × 30 days = 450/month
+
+### V5 — M&A Silver Tsunami (SunBridge Advisors)
+- **ICP**: Traditional Florida business owners (HVAC, plumbing, manufacturing, legacy B2B SaaS) with 15+ years of operation — high probability of founder fatigue or pending succession
+- **4 niches**: `hvac_plumbing`, `manufacturing`, `b2b_saas`, `veteran_founders` (LinkedIn /in/ profiles)
+- **Qualification**: `MAQualificationResult` — 10 fields including `founder_name`, `estimated_years_active`, `momentum_signal`, `suggested_angle`
+- **3 outreach angles**: market-valuation, succession-planning, industry-consolidation
+- **Email persona**: Eduardo / SunBridge Advisors — confidential, never uses "sell/buy/acquisition," under 75 words, CTA is a Market Valuation or 10-min Confidential Chat
+- **Scoring thesis**: High scores = boring, mature, family-owned. Low scores = modern startups, franchises, solo consultants
+- **Budget**: 4 queries/run × 3/day × 30 days = ~360/month (manual trigger)
 
 ---
 

@@ -102,6 +102,34 @@ LGAAS_ANGLE_COLORS = {
     "proof-of-concept":     "#8B5CF6",
 }
 
+# ── M&A Silver Tsunami Vertical 5 ─────────────────────────────────
+MA_SOURCE_COLORS = {
+    "hvac_plumbing":    "#F59E0B",
+    "manufacturing":    "#6366F1",
+    "b2b_saas":         "#10B981",
+    "veteran_founders": "#EC4899",
+}
+
+MA_SOURCE_LABELS = {
+    "hvac_plumbing":    "HVAC & Plumbing",
+    "manufacturing":    "Manufacturing",
+    "b2b_saas":         "B2B SaaS",
+    "veteran_founders": "Veteran Founders",
+}
+
+MA_SOURCE_ICONS = {
+    "hvac_plumbing":    "🔧",
+    "manufacturing":    "🏭",
+    "b2b_saas":         "💻",
+    "veteran_founders": "👔",
+}
+
+MA_ANGLE_COLORS = {
+    "market-valuation":        "#6366F1",
+    "succession-planning":     "#10B981",
+    "industry-consolidation":  "#F59E0B",
+}
+
 
 def status_badge(status: str) -> str:
     color = STATUS_COLORS.get(status, "#9CA3B0")
