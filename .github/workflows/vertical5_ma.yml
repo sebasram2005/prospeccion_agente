@@ -1,0 +1,42 @@
+name: Vertical 5 — M&A Silver Tsunami Scraper
+
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: 'Niche sub-vertical to search'
+        required: true
+        default: 'all'
+        type: choice
+        options: ['hvac_plumbing', 'manufacturing', 'b2b_saas', 'veteran_founders', 'all']
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r services/vertical5_ma/requirements.txt
+
+      - name: Run scraper
+        working-directory: .
+        run: python -m services.vertical5_ma.src.main --source ${{ inputs.source }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          HITL_GATEWAY_URL: ${{ secrets.HITL_GATEWAY_URL }}
+          SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
+          # SERPER_API_KEY_V5: ${{ secrets.SERPER_API_KEY_V5 }}  # Optional dedicated key
+          JINA_API_KEY: ${{ secrets.JINA_API_KEY }}
